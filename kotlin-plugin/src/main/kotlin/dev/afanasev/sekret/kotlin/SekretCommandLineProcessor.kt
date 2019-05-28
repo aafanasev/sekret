@@ -11,7 +11,7 @@ class SekretCommandLineProcessor : CommandLineProcessor {
     override val pluginId: String = "sekret"
 
     override val pluginOptions: Collection<AbstractCliOption> = listOf(
-            CliOption("enabled", "<true|false>", "whether plugin is enabled")
+            CliOption("enabled", "<true|false>", "whether plugin is enabled", false)
     )
 
     override fun processOption(
