@@ -1,13 +1,15 @@
 package dev.afanasev.sekret.sample
 
+import dev.afanasev.sekret.Secret
+
 data class User(
         val login: String,
-        val password: String
+        @Secret val password: String
 )
 
 data class Admin(
         val login: String,
-        val password: String
+        @Secret val password: String
 )
 
 class Student(
