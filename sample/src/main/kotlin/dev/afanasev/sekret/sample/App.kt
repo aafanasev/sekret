@@ -1,20 +1,14 @@
 package dev.afanasev.sekret.sample
 
-import dev.afanasev.sekret.Secret
-
 data class User(
         val login: String,
-        @Secret val password: String
+        val password: String
 )
 
 data class Admin(
         val login: String,
-        @Secret val password: String
-) {
-    override fun toString(): String {
-        return "Leak $password"
-    }
-}
+        val password: String
+)
 
 class Student(
         val login: String,
@@ -26,3 +20,4 @@ fun main(args: Array<String>) {
     println(Admin("John", "Snow"))
     println(Student("John", "Snow"))
 }
+
