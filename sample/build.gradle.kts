@@ -10,7 +10,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "sekret.sample.AppKt"
+    mainClassName = "dev.afanasev.sekret.sample.AppKt"
 }
 
 val compileKotlin by tasks.getting(KotlinCompile::class) {
