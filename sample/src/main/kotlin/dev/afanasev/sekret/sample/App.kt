@@ -9,9 +9,11 @@ data class User(
 
 data class Admin(
         val login: String,
-        val password: String
+        @Secret val password: String
 ) {
-    override fun toString() = "secret"
+    override fun toString(): String {
+        return "Leak $password"
+    }
 }
 
 class Student(
