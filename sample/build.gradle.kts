@@ -7,15 +7,23 @@ plugins {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    api(project(":annotation"))
+    implementation(project(":annotation"))
 }
 
 application {
     mainClassName = "dev.afanasev.sekret.sample.AppKt"
 }
 
+val kotlinPlugin = ":kotlin-plugin"
+
 val compileKotlin by tasks.getting(KotlinCompile::class) {
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xplugin=${project(":kotlin-plugin").buildDir}/libs/kotlin-plugin.jar")
+        freeCompilerArgs = listOf("-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin.jar")
+    }
+}
+
+tasks {
+    "run" {
+        dependsOn(project(kotlinPlugin).getTasksByName("build", false))
     }
 }
