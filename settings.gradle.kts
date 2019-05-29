@@ -1,1 +1,1 @@
-include("kotlin-plugin", "gradle-plugin", "sample")
+include("annotation", "gradle-plugin", "kotlin-plugin", "sample")
