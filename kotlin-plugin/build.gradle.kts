@@ -1,8 +1,8 @@
 import com.jfrog.bintray.gradle.BintrayExtension
 
 plugins {
-    kotlin("jvm") version "1.3.21"
-    kotlin("kapt") version "1.3.21"
+    kotlin("jvm")
+    kotlin("kapt")
     `maven-publish`
     id("com.jfrog.bintray") version "1.8.4"
 }
