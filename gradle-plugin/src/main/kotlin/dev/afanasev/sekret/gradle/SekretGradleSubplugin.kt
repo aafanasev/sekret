@@ -26,6 +26,10 @@ class SekretGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
         val extension = project.extensions.findByType(SekretGradlePluginExtension::class.java)
                 ?: SekretGradlePluginExtension()
 
+        if (extension.enabled && extension.annotations.isEmpty()) {
+            error("Sekret is enabled, but no annotations were set")
+        }
+
         val enabled = SubpluginOption("enabled", extension.enabled.toString())
         val annotations = extension.annotations.map { SubpluginOption("annotations", it) }
 
