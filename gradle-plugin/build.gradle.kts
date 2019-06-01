@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "1.3.21"
     kotlin("kapt") version "1.3.21"
     `java-gradle-plugin`
+    id("com.gradle.plugin-publish") version "0.10.0"
 }
 
 dependencies {
@@ -16,7 +17,20 @@ gradlePlugin {
     plugins {
         create("sekretPlugin") {
             id = "dev.afanasev.sekret"
+            displayName = "Sekret Gradle plugin"
+            description = "Hide sensitive information in toString() of Kotlin Data classes"
             implementationClass = "dev.afanasev.sekret.gradle.SekretGradlePlugin"
         }
     }
 }
+
+pluginBundle {
+    website = "https://github.com/aafanasev/sekret/"
+    vcsUrl = "https://github.com/aafanasev/sekret/"
+    tags = listOf("kotlin", "data class", "toString", "secret")
+
+    mavenCoordinates {
+        artifactId = "sekret-gradle-plugin"
+    }
+}
+
