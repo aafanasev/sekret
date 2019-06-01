@@ -5,5 +5,6 @@ import org.jetbrains.kotlin.config.CompilerConfigurationKey
 object SekretOptions {
 
     val KEY_ENABLED = CompilerConfigurationKey.create<Boolean>("enabled")
+    val KEY_ANNOTATIONS = CompilerConfigurationKey.create<List<String>>("annotations")
 
 }

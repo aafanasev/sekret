@@ -15,8 +15,7 @@ class SekretComponentRegistrar : ComponentRegistrar {
             configuration: CompilerConfiguration
     ) {
         if (configuration[KEY_ENABLED] == false) {
-            // TODO
-            // return
+            return
         }
 
         ClassBuilderInterceptorExtension.registerExtension(project, SekretClassGenerationInterceptor())
