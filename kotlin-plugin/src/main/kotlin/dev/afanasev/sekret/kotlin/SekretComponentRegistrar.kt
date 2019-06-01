@@ -1,6 +1,7 @@
 package dev.afanasev.sekret.kotlin
 
 import com.google.auto.service.AutoService
+import dev.afanasev.sekret.kotlin.SekretOptions.KEY_ANNOTATIONS
 import dev.afanasev.sekret.kotlin.SekretOptions.KEY_ENABLED
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
@@ -14,11 +15,13 @@ class SekretComponentRegistrar : ComponentRegistrar {
             project: MockProject,
             configuration: CompilerConfiguration
     ) {
-        if (configuration[KEY_ENABLED] == false) {
+        if (!configuration.get(KEY_ENABLED, true)) {
             return
         }
 
-        ClassBuilderInterceptorExtension.registerExtension(project, SekretClassGenerationInterceptor())
+        val annotations = configuration.get(KEY_ANNOTATIONS, listOf("dev.afanasev.sekret.Secret"))
+
+        ClassBuilderInterceptorExtension.registerExtension(project, SekretClassGenerationInterceptor(annotations))
     }
 
 }

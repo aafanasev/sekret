@@ -10,9 +10,12 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
-class SekretClassBuilder(private val classBuilder: ClassBuilder) : DelegatingClassBuilder() {
+class SekretClassBuilder(
+        private val classBuilder: ClassBuilder,
+        annotations: List<String>
+) : DelegatingClassBuilder() {
 
-    private val builtInAnnotation = FqName("dev.afanasev.sekret.Secret")
+    private val annotations: List<FqName> = annotations.map { FqName(it) }
     private val secretFields = mutableSetOf<String>()
 
     override fun getDelegate(): ClassBuilder = classBuilder
@@ -25,8 +28,8 @@ class SekretClassBuilder(private val classBuilder: ClassBuilder) : DelegatingCla
             signature: String?,
             value: Any?
     ): FieldVisitor {
-        (origin.descriptor as? PropertyDescriptor)?.backingField?.let {
-            if (it.annotations.hasAnnotation(builtInAnnotation)) {
+        (origin.descriptor as? PropertyDescriptor)?.backingField?.let { descriptor ->
+            if (annotations.any { descriptor.annotations.hasAnnotation(it) }) {
                 secretFields.add(name)
             }
         }
