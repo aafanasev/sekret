@@ -15,10 +15,17 @@ dependencies {
     kapt("com.google.auto.service:auto-service:1.0-rc4")
 }
 
+val sourcesJar by tasks.creating(Jar::class) {
+    dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+    from(sourceSets["main"].allSource)
+    archiveClassifier.set("sources")
+}
+
 publishing {
     publications {
         create("maven", MavenPublication::class.java) {
             from(components["java"])
+            artifact(sourcesJar)
             artifactId = "sekret-kotlin-plugin"
         }
     }

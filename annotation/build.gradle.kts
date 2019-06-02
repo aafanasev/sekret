@@ -10,10 +10,17 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 }
 
+val sourcesJar by tasks.creating(Jar::class) {
+    dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+    from(sourceSets["main"].allSource)
+    archiveClassifier.set("sources")
+}
+
 publishing {
     publications {
         create("maven", MavenPublication::class.java) {
             from(components["java"])
+            artifact(sourcesJar)
             artifactId = "sekret-annotation"
         }
     }
