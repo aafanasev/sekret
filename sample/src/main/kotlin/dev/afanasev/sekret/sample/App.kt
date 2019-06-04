@@ -4,7 +4,8 @@ import dev.afanasev.sekret.Secret
 
 data class User(
         val login: String,
-        @Secret val password: String
+        @Secret val password: String,
+        @Secret val student: Student
 )
 
 data class Admin(
@@ -18,8 +19,10 @@ class Student(
 )
 
 fun main(args: Array<String>) {
-    println(User("John", "Snow"))
+    val student = Student("John", "Snow")
+
+    println(User("John", "Snow", student))
     println(Admin("John", "Snow"))
-    println(Student("John", "Snow"))
+    println(student)
 }
 
