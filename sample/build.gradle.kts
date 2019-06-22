@@ -18,7 +18,7 @@ val kotlinPlugin = ":kotlin-plugin"
 
 val compileKotlin by tasks.getting(KotlinCompile::class) {
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin.jar")
+        freeCompilerArgs = listOf("-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin-$version.jar")
     }
 }
 
