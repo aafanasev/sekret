@@ -62,3 +62,8 @@ sekret {
 ### Kotlin CLI
 
 [TBD]
+
+## Mentions
+
+- [Medium](https://medium.com/@jokuskay/how-to-exclude-properties-from-tostring-of-kotlin-data-classes-f8dc04b8c45e)
+- [Habr](https://habr.com/ru/company/digital-ecosystems/blog/459062/)
