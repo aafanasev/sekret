@@ -18,11 +18,10 @@ class Student(
         val password: String
 )
 
-fun main(args: Array<String>) {
+fun main() {
     val student = Student("John", "Snow")
 
     println(User("John", "Snow", student))
     println(Admin("John", "Snow"))
     println(student)
 }
-
