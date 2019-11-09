@@ -61,7 +61,12 @@ sekret {
 
 ### Kotlin CLI
 
-[TBD]
+```bash
+kotlinc \
+    -Xplugin=kotlin-plugin.jar \
+    -P plugin:sekret:annotations=com.sample.YourAnnotation \
+    ...
+```
 
 ## Mentions
 
