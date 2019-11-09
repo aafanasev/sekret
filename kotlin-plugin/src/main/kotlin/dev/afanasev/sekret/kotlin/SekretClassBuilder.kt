@@ -11,7 +11,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
 class SekretClassBuilder(
-        private val classBuilder: ClassBuilder,
+        internal val classBuilder: ClassBuilder,
         annotations: List<String>
 ) : DelegatingClassBuilder() {
 
