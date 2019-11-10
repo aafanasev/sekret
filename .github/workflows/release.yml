@@ -1,0 +1,21 @@
+name: CI
+
+on: 
+  release:
+  - tags/*
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build
+      run: ./gradlew build
+    - name: Upload annotation
+      run: ./gradlew :annotation:bintrayUpload
+    - name: Upload compiler
+      run: ./gradlew :kotlin-plugin:bintrayUpload
+    - name: Upload gradle plugin
+      run: ./gradlew :gradle-plugin:publishPlugins
