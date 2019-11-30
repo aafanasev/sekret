@@ -21,6 +21,10 @@ object SekretSpec : Spek({
         it("should hide nested object with annotation") {
             assertEquals("User(login=root, password=$mask, student=$mask)", User("root", "pwd", Student("student", "")).toString())
         }
+
+        it("should hide not only strings") {
+            assertEquals("DifferentTypes(integer=$mask, string=hi, boolean=$mask)", DifferentTypes(123, "hi", true).toString())
+        }
     }
 
 })
