@@ -53,18 +53,46 @@ class SekretClassBuilder(
 
         return object : MethodVisitor(Opcodes.ASM5, original) {
 
+            private var replaceDescriptor: Boolean = false
+
             override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String?) {
                 if (opcode == Opcodes.GETFIELD && secretFields.contains(name)) {
+                    replaceDescriptor = true
+
                     InstructionAdapter(this).apply {
                         pop()
-                        visitLdcInsn("■■■")
+                        visitLdcInsn(MASK)
                     }
                 } else {
                     super.visitFieldInsn(opcode, owner, name, descriptor)
                 }
             }
 
+            override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
+                val newDescriptor = if (
+                        opcode == Opcodes.INVOKEVIRTUAL
+                        && owner == STRING_BUILDER
+                        && name == APPEND_METHOD
+                        && replaceDescriptor
+                ) {
+                    replaceDescriptor = false
+
+                    APPEND_DESCRIPTOR
+                } else {
+                    descriptor
+                }
+
+                super.visitMethodInsn(opcode, owner, name, newDescriptor, isInterface)
+            }
+
         }
+    }
+
+    private companion object {
+        const val MASK = "■■■"
+        const val STRING_BUILDER = "java/lang/StringBuilder"
+        const val APPEND_METHOD = "append"
+        const val APPEND_DESCRIPTOR = "(Ljava/lang/String;)Ljava/lang/StringBuilder;"
     }
 
 }
