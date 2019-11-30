@@ -38,7 +38,7 @@ Apply plugin:
 
 ```groovy
 plugins {
-    id 'dev.afanasev.sekret' version '0.0.2'
+    id 'dev.afanasev.sekret' version '0.0.3'
 }
 ```
 
@@ -46,7 +46,7 @@ Configure:
 ```groovy
 // Download @Secret annotation
 dependencies {
-    compile 'dev.afanasev:sekret-annotation:0.0.2'
+    compile 'dev.afanasev:sekret-annotation:0.0.3'
 }
 
 // OR use your own
