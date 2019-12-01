@@ -3,6 +3,7 @@ package dev.afanasev.sekret.kotlin
 import com.google.auto.service.AutoService
 import dev.afanasev.sekret.kotlin.SekretOptions.KEY_ANNOTATIONS
 import dev.afanasev.sekret.kotlin.SekretOptions.KEY_ENABLED
+import dev.afanasev.sekret.kotlin.SekretOptions.KEY_MASK
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
@@ -20,8 +21,9 @@ class SekretComponentRegistrar : ComponentRegistrar {
         }
 
         val annotations = configuration.get(KEY_ANNOTATIONS, listOf("dev.afanasev.sekret.Secret"))
+        val mask = configuration.get(KEY_MASK, "■■■")
 
-        ClassBuilderInterceptorExtension.registerExtension(project, SekretClassGenerationInterceptor(annotations))
+        ClassBuilderInterceptorExtension.registerExtension(project, SekretClassGenerationInterceptor(annotations, mask))
     }
 
 }

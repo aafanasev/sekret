@@ -1,6 +1,9 @@
+package dev.afanasev.sekret.kotlin
+
 import com.google.auto.service.AutoService
 import dev.afanasev.sekret.kotlin.SekretOptions.KEY_ANNOTATIONS
 import dev.afanasev.sekret.kotlin.SekretOptions.KEY_ENABLED
+import dev.afanasev.sekret.kotlin.SekretOptions.KEY_MASK
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
@@ -9,24 +12,27 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 @AutoService(CommandLineProcessor::class)
 class SekretCommandLineProcessor : CommandLineProcessor {
 
-    private val enabled = "enabled"
-    private val annotations = "annotations"
-
     override val pluginId: String = "sekret"
 
     override val pluginOptions: Collection<AbstractCliOption> = listOf(
             CliOption(
-                    enabled,
+                    KEY_ENABLED.toString(),
                     "<true|false>",
                     "Whether plugin is enabled",
                     required = false
             ),
             CliOption(
-                    annotations,
+                    KEY_ANNOTATIONS.toString(),
                     "<fqname>",
                     "Secret annotations",
                     required = false,
                     allowMultipleOccurrences = true
+            ),
+            CliOption(
+                    KEY_MASK.toString(),
+                    "<fqname>",
+                    "Mask, by default it's three squares",
+                    required = false
             )
     )
 
@@ -35,8 +41,9 @@ class SekretCommandLineProcessor : CommandLineProcessor {
             value: String,
             configuration: CompilerConfiguration
     ) = when (option.optionName) {
-        enabled -> configuration.put(KEY_ENABLED, value.toBoolean())
-        annotations -> configuration.appendList(KEY_ANNOTATIONS, value)
+        KEY_ENABLED.toString() -> configuration.put(KEY_ENABLED, value.toBoolean())
+        KEY_ANNOTATIONS.toString() -> configuration.appendList(KEY_ANNOTATIONS, value)
+        KEY_MASK.toString() -> configuration.put(KEY_MASK, value)
         else -> error("Unexpected config option ${option.optionName}")
     }
 
