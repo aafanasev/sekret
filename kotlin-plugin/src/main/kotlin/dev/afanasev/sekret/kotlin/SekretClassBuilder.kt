@@ -12,7 +12,8 @@ import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
 class SekretClassBuilder(
         internal val classBuilder: ClassBuilder,
-        annotations: List<String>
+        annotations: List<String>,
+        private val mask: String
 ) : DelegatingClassBuilder() {
 
     private val annotations: List<FqName> = annotations.map { FqName(it) }
@@ -61,7 +62,7 @@ class SekretClassBuilder(
 
                     InstructionAdapter(this).apply {
                         pop()
-                        visitLdcInsn(MASK)
+                        visitLdcInsn(mask)
                     }
                 } else {
                     super.visitFieldInsn(opcode, owner, name, descriptor)
@@ -89,7 +90,6 @@ class SekretClassBuilder(
     }
 
     private companion object {
-        const val MASK = "■■■"
         const val STRING_BUILDER = "java/lang/StringBuilder"
         const val APPEND_METHOD = "append"
         const val APPEND_DESCRIPTOR = "(Ljava/lang/String;)Ljava/lang/StringBuilder;"

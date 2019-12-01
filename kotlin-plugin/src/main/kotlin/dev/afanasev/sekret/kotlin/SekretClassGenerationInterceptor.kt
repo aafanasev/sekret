@@ -8,7 +8,10 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 
-class SekretClassGenerationInterceptor(private val annotations: List<String>) : ClassBuilderInterceptorExtension {
+class SekretClassGenerationInterceptor(
+        private val annotations: List<String>,
+        private val mask: String
+) : ClassBuilderInterceptorExtension {
 
     override fun interceptClassBuilderFactory(
             interceptedFactory: ClassBuilderFactory,
@@ -17,7 +20,7 @@ class SekretClassGenerationInterceptor(private val annotations: List<String>) : 
     ) = object : ClassBuilderFactory {
 
         override fun newClassBuilder(origin: JvmDeclarationOrigin): ClassBuilder {
-            return SekretClassBuilder(interceptedFactory.newClassBuilder(origin), annotations)
+            return SekretClassBuilder(interceptedFactory.newClassBuilder(origin), annotations, mask)
         }
 
         override fun getClassBuilderMode(): ClassBuilderMode {
