@@ -1,5 +1,7 @@
 # Sekret
 
+[ ![Download](https://api.bintray.com/packages/aafanasev/maven/sekret-annotation/images/download.svg) ](https://bintray.com/aafanasev/maven/sekret-annotation/_latestVersion)
+
 Kotlin compiler plugin that hides data class properties in generated `toString()` method
 
 ## Motivation
