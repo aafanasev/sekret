@@ -1,9 +1,9 @@
 name: Release
 
-on: 
-  create:
-    tags:
-      - *
+on:
+  release:
+    types:
+      - created
 
 jobs:
   build:
@@ -11,12 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Build
       run: ./gradlew build
     - name: Upload annotation
-      run: ./gradlew :annotation:bintrayUpload
+      run: ./gradlew :annotation:bintrayUpload  --stacktrace
+      env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
     - name: Upload compiler
-      run: ./gradlew :kotlin-plugin:bintrayUpload
+      run: ./gradlew :kotlin-plugin:bintrayUpload  --stacktrace
+      env:
+          BINTRAY_USER: ${{ secrets.BINTRAY_USER }}
+          BINTRAY_API_KEY: ${{ secrets.BINTRAY_API_KEY }}
     - name: Upload gradle plugin
-      run: ./gradlew :gradle-plugin:publishPlugins
+      run: |
+        ./gradlew :gradle-plugin:publishPlugins --stacktrace
+        -Pgradle.publish.key=${{ GRADLE_PUBLISH_KEY }} 
+        -Pgradle.publish.secret=${{ GRADLE_PUBLISH_SECRET }}
