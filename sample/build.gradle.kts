@@ -26,19 +26,11 @@ tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin-$version.jar")
     }
+    dependsOn(project(kotlinPlugin).getTasksByName("build", false))
 }
 
 tasks.withType<Test> {
     useJUnitPlatform {
         includeEngines("spek2")
-    }
-}
-
-tasks {
-    "run" {
-        dependsOn(project(kotlinPlugin).getTasksByName("build", false))
-    }
-    "test" {
-        dependsOn(project(kotlinPlugin).getTasksByName("build", false))
     }
 }
