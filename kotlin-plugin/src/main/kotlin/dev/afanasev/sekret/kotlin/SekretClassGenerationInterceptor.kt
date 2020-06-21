@@ -10,7 +10,8 @@ import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 
 class SekretClassGenerationInterceptor(
         private val annotations: List<String>,
-        private val mask: String
+        private val mask: String,
+        private val maskNulls: Boolean
 ) : ClassBuilderInterceptorExtension {
 
     override fun interceptClassBuilderFactory(
@@ -20,7 +21,7 @@ class SekretClassGenerationInterceptor(
     ) = object : ClassBuilderFactory {
 
         override fun newClassBuilder(origin: JvmDeclarationOrigin): ClassBuilder {
-            return SekretClassBuilder(interceptedFactory.newClassBuilder(origin), annotations, mask)
+            return SekretClassBuilder(interceptedFactory.newClassBuilder(origin), annotations, mask, maskNulls)
         }
 
         override fun getClassBuilderMode(): ClassBuilderMode {

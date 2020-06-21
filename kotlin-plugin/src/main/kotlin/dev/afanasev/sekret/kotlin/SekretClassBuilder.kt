@@ -13,7 +13,8 @@ import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 class SekretClassBuilder(
         internal val classBuilder: ClassBuilder,
         annotations: List<String>,
-        private val mask: String
+        private val mask: String,
+        private val maskNulls: Boolean
 ) : DelegatingClassBuilder() {
 
     private val annotations: List<FqName> = annotations.map { FqName(it) }

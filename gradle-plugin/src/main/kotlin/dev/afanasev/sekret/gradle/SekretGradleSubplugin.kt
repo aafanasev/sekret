@@ -30,14 +30,16 @@ class SekretGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
             error("Sekret is enabled, but no annotations were set")
         }
 
+        val mask = SubpluginOption("mask", extension.mask)
         val enabled = SubpluginOption("enabled", extension.enabled.toString())
+        val maskNulls = SubpluginOption("maskNulls", extension.maskNulls.toString())
         val annotations = extension.annotations.map { SubpluginOption("annotations", it) }
 
-        return annotations + enabled
+        return annotations + mask + enabled + maskNulls
     }
 
     override fun getCompilerPluginId() = "sekret"
 
-    override fun getPluginArtifact() = SubpluginArtifact("dev.afanasev", "sekret-kotlin-plugin", "0.0.3")
+    override fun getPluginArtifact() = SubpluginArtifact("dev.afanasev", "sekret-kotlin-plugin", "0.0.4")
 
 }
