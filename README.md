@@ -59,8 +59,8 @@ sekret {
     // true by default
     enabled = true  
     
-    // false by default
-    maskNulls = true  
+    // true by default
+    maskNulls = false  
     
     // "dev.afanasev.sekret.Secret" by default
     annotations = ["com.sample.YourAnnotation"] 
