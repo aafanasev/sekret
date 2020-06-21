@@ -53,14 +53,17 @@ dependencies {
 
 // OR use your own
 sekret {
+    // "■■■" by default
+    mask = "***"    
+    
     // true by default
     enabled = true  
     
-    // "dev.afanasev.sekret.Secret" by default
-    annotations = ["com.sample.YourAnnotation"]
+    // true by default
+    maskNulls = false  
     
-    // "■■■" by default
-    mask = "***" 
+    // "dev.afanasev.sekret.Secret" by default
+    annotations = ["com.sample.YourAnnotation"] 
 }
 ```
 

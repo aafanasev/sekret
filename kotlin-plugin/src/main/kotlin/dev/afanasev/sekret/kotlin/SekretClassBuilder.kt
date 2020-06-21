@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.org.objectweb.asm.FieldVisitor
+import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
@@ -56,14 +57,34 @@ class SekretClassBuilder(
         return object : MethodVisitor(Opcodes.ASM5, original) {
 
             private var replaceDescriptor: Boolean = false
+            private var appendLabel: Label? = null
 
             override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String?) {
                 if (opcode == Opcodes.GETFIELD && secretFields.contains(name)) {
                     replaceDescriptor = true
 
-                    InstructionAdapter(this).apply {
-                        pop()
-                        visitLdcInsn(mask)
+                    if (maskNulls) {
+                        InstructionAdapter(this).apply {
+                            pop()
+                            visitLdcInsn(mask)
+                        }
+                    } else {
+                        super.visitFieldInsn(opcode, owner, name, descriptor)
+
+                        appendLabel = Label()
+                        val ifNullLabel = Label()
+
+                        InstructionAdapter(this).apply {
+                            ifnull(ifNullLabel)
+
+                            visitLabel(Label())
+                            visitLdcInsn(mask)
+                            goTo(appendLabel)
+
+                            visitLabel(ifNullLabel)
+                            visitLdcInsn("null")
+                            goTo(appendLabel)
+                        }
                     }
                 } else {
                     super.visitFieldInsn(opcode, owner, name, descriptor)
@@ -78,6 +99,11 @@ class SekretClassBuilder(
                         && replaceDescriptor
                 ) {
                     replaceDescriptor = false
+
+                    appendLabel?.let {
+                        visitLabel(appendLabel)
+                        appendLabel = null
+                    }
 
                     APPEND_DESCRIPTOR
                 } else {
