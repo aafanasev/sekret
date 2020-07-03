@@ -20,6 +20,7 @@ class SekretClassBuilder(
 
     private val annotations: List<FqName> = annotations.map { FqName(it) }
     private val secretFields = mutableSetOf<String>()
+    private val secretArrayFields = mutableSetOf<String>()
 
     override fun getDelegate(): ClassBuilder = classBuilder
 
@@ -34,6 +35,9 @@ class SekretClassBuilder(
         (origin.descriptor as? PropertyDescriptor)?.backingField?.let { descriptor ->
             if (annotations.any { descriptor.annotations.hasAnnotation(it) }) {
                 secretFields.add(name)
+                if (desc.first() == '[') {
+                    secretArrayFields.add(name)
+                }
             }
         }
 
@@ -57,11 +61,13 @@ class SekretClassBuilder(
         return object : MethodVisitor(Opcodes.ASM5, original) {
 
             private var replaceDescriptor: Boolean = false
+            private var skipNextInstruction: Boolean = false
             private var appendLabel: Label? = null
 
             override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String?) {
                 if (opcode == Opcodes.GETFIELD && secretFields.contains(name)) {
                     replaceDescriptor = true
+                    skipNextInstruction = secretArrayFields.contains(name)
 
                     if (maskNulls) {
                         InstructionAdapter(this).apply {
@@ -92,6 +98,11 @@ class SekretClassBuilder(
             }
 
             override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
+                if (skipNextInstruction) {
+                    skipNextInstruction = false
+                    return
+                }
+
                 val newDescriptor = if (
                         opcode == Opcodes.INVOKEVIRTUAL
                         && owner == STRING_BUILDER

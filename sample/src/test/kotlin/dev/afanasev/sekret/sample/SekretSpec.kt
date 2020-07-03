@@ -25,6 +25,10 @@ object SekretSpec : Spek({
         it("should hide not only strings") {
             assertEquals("DifferentTypes(integer=$mask, string=hi, boolean=$mask)", DifferentTypes(123, "hi", true).toString())
         }
+
+        it("should hide arrays") {
+            assertEquals("Arrays(ints=$mask, strings=$mask)", Arrays(intArrayOf(1, 2), arrayOf("one", "two")).toString())
+        }
     }
 
 })

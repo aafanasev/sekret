@@ -24,6 +24,12 @@ data class DifferentTypes(
         @Secret val boolean: Boolean
 )
 
+@Suppress("ArrayInDataClass")
+data class Arrays(
+        @Secret val ints: IntArray,
+        @Secret val strings: Array<String>
+)
+
 fun main() {
     val student = Student("John", "Snow")
 
@@ -32,4 +38,6 @@ fun main() {
     println(student)
 
     println(DifferentTypes(1, "hello", true))
+
+    println(Arrays(intArrayOf(1, 2), arrayOf("one", "two")))
 }
