@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.DelegatingClassBuilder
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.Label
@@ -98,6 +99,41 @@ class SekretClassBuilder(
             }
 
             override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
+                if (opcode == Opcodes.INVOKEVIRTUAL
+                        && owner == origin.descriptor?.containingDeclaration?.fqNameSafe?.asString()?.replace('.', '/')
+                        && name?.startsWith("get") == true
+                        && secretFields.contains(name.substring(3).decapitalize())) {
+
+                    replaceDescriptor = true
+                    skipNextInstruction = secretArrayFields.contains(name.substring(3).decapitalize())
+
+                    if (maskNulls) {
+                        InstructionAdapter(this).apply {
+                            pop()
+                            visitLdcInsn(mask)
+                        }
+                    } else {
+                        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
+
+                        appendLabel = Label()
+                        val ifNullLabel = Label()
+
+                        InstructionAdapter(this).apply {
+                            ifnull(ifNullLabel)
+
+                            visitLabel(Label())
+                            visitLdcInsn(mask)
+                            goTo(appendLabel)
+
+                            visitLabel(ifNullLabel)
+                            visitLdcInsn("null")
+                            goTo(appendLabel)
+                        }
+                    }
+
+                    return
+                }
+
                 if (skipNextInstruction) {
                     skipNextInstruction = false
                     return
