@@ -61,14 +61,14 @@ class SekretClassBuilder(
 
         return object : MethodVisitor(Opcodes.ASM5, original) {
 
-            private var replaceDescriptor: Boolean = false
-            private var skipNextInstruction: Boolean = false
             private var appendLabel: Label? = null
+            private var skipNextInstruction: Boolean = false
+            private var replaceAppendDescriptor: Boolean = false
 
             override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String?) {
                 if (opcode == Opcodes.GETFIELD && secretFields.contains(name)) {
-                    replaceDescriptor = true
                     skipNextInstruction = secretArrayFields.contains(name)
+                    replaceAppendDescriptor = true
 
                     if (maskNulls) {
                         InstructionAdapter(this).apply {
@@ -77,21 +77,7 @@ class SekretClassBuilder(
                         }
                     } else {
                         super.visitFieldInsn(opcode, owner, name, descriptor)
-
-                        appendLabel = Label()
-                        val ifNullLabel = Label()
-
-                        InstructionAdapter(this).apply {
-                            ifnull(ifNullLabel)
-
-                            visitLabel(Label())
-                            visitLdcInsn(mask)
-                            goTo(appendLabel)
-
-                            visitLabel(ifNullLabel)
-                            visitLdcInsn("null")
-                            goTo(appendLabel)
-                        }
+                        addInstructionsToPrintNullsAsIs()
                     }
                 } else {
                     super.visitFieldInsn(opcode, owner, name, descriptor)
@@ -99,13 +85,10 @@ class SekretClassBuilder(
             }
 
             override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
-                if (opcode == Opcodes.INVOKEVIRTUAL
-                        && owner == origin.descriptor?.containingDeclaration?.fqNameSafe?.asString()?.replace('.', '/')
-                        && name?.startsWith("get") == true
-                        && secretFields.contains(name.substring(3).decapitalize())) {
-
-                    replaceDescriptor = true
-                    skipNextInstruction = secretArrayFields.contains(name.substring(3).decapitalize())
+                val field = getFieldFromGetter(opcode, owner, name)
+                if (field != null && secretFields.contains(field)) {
+                    skipNextInstruction = secretArrayFields.contains(field)
+                    replaceAppendDescriptor = true
 
                     if (maskNulls) {
                         InstructionAdapter(this).apply {
@@ -114,26 +97,13 @@ class SekretClassBuilder(
                         }
                     } else {
                         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
-
-                        appendLabel = Label()
-                        val ifNullLabel = Label()
-
-                        InstructionAdapter(this).apply {
-                            ifnull(ifNullLabel)
-
-                            visitLabel(Label())
-                            visitLdcInsn(mask)
-                            goTo(appendLabel)
-
-                            visitLabel(ifNullLabel)
-                            visitLdcInsn("null")
-                            goTo(appendLabel)
-                        }
+                        addInstructionsToPrintNullsAsIs()
                     }
 
                     return
                 }
 
+                // skip Array.toString() method
                 if (skipNextInstruction) {
                     skipNextInstruction = false
                     return
@@ -143,9 +113,9 @@ class SekretClassBuilder(
                         opcode == Opcodes.INVOKEVIRTUAL
                         && owner == STRING_BUILDER
                         && name == APPEND_METHOD
-                        && replaceDescriptor
+                        && replaceAppendDescriptor
                 ) {
-                    replaceDescriptor = false
+                    replaceAppendDescriptor = false
 
                     appendLabel?.let {
                         visitLabel(appendLabel)
@@ -160,6 +130,34 @@ class SekretClassBuilder(
                 super.visitMethodInsn(opcode, owner, name, newDescriptor, isInterface)
             }
 
+            private fun getFieldFromGetter(opcode: Int, owner: String?, name: String?): String? {
+                if (
+                        opcode != Opcodes.INVOKEVIRTUAL
+                        || owner != origin.classDescriptor()
+                        || name?.startsWith("get") != true
+                ) {
+                    return null
+                }
+
+                return name.substring(3).decapitalize()
+            }
+
+            private fun addInstructionsToPrintNullsAsIs() {
+                appendLabel = Label()
+                val ifNullLabel = Label()
+
+                InstructionAdapter(this).apply {
+                    ifnull(ifNullLabel)
+
+                    visitLabel(Label())
+                    visitLdcInsn(mask)
+                    goTo(appendLabel)
+
+                    visitLabel(ifNullLabel)
+                    visitLdcInsn("null")
+                    goTo(appendLabel)
+                }
+            }
         }
     }
 
@@ -168,5 +166,8 @@ class SekretClassBuilder(
         const val APPEND_METHOD = "append"
         const val APPEND_DESCRIPTOR = "(Ljava/lang/String;)Ljava/lang/StringBuilder;"
     }
+
+    private fun JvmDeclarationOrigin.classDescriptor() =
+            descriptor?.containingDeclaration?.fqNameSafe?.asString()?.replace('.', '/')
 
 }
