@@ -29,6 +29,10 @@ object SekretSpec : Spek({
         it("should hide arrays") {
             assertEquals("Arrays(ints=$mask, strings=$mask)", Arrays(intArrayOf(1, 2), arrayOf("one", "two")).toString())
         }
+
+        it("should hide getters") {
+            assertEquals("BaseImpl(str=$mask, id=$mask, arr=$mask, str2=$mask, str3=str3)", BaseImpl("str", 42, arrayOf("a", "r"), "str3", "str3").toString())
+        }
     }
 
 })
