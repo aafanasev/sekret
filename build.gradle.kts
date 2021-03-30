@@ -1,13 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.72" apply false
+    kotlin("jvm") version "1.4.31" apply false
 }
 
 allprojects {
 
     group = "dev.afanasev"
-    version = "0.0.8"
+    version = "0.0.9"
 
     repositories {
         jcenter()
