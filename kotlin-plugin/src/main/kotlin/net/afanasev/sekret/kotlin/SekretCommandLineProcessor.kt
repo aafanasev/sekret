@@ -1,10 +1,10 @@
-package dev.afanasev.sekret.kotlin
+package net.afanasev.sekret.kotlin
 
 import com.google.auto.service.AutoService
-import dev.afanasev.sekret.kotlin.SekretOptions.KEY_ANNOTATIONS
-import dev.afanasev.sekret.kotlin.SekretOptions.KEY_ENABLED
-import dev.afanasev.sekret.kotlin.SekretOptions.KEY_MASK_NULLS
-import dev.afanasev.sekret.kotlin.SekretOptions.KEY_MASK
+import net.afanasev.sekret.kotlin.SekretOptions.KEY_ANNOTATIONS
+import net.afanasev.sekret.kotlin.SekretOptions.KEY_ENABLED
+import net.afanasev.sekret.kotlin.SekretOptions.KEY_MASK_NULLS
+import net.afanasev.sekret.kotlin.SekretOptions.KEY_MASK
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor

@@ -1,4 +1,4 @@
-package dev.afanasev.sekret.kotlin
+package net.afanasev.sekret.kotlin
 
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 

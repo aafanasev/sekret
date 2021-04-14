@@ -1,4 +1,4 @@
-package dev.afanasev.sekret.sample
+package net.afanasev.sekret.sample
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse

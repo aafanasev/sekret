@@ -6,8 +6,8 @@ plugins {
 
 allprojects {
 
-    group = "dev.afanasev"
-    version = "0.0.10"
+    group = "net.afanasev"
+    version = "0.1.0"
 
     repositories {
         jcenter()

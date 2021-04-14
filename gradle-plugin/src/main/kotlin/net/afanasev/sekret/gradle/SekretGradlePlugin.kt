@@ -1,4 +1,4 @@
-package dev.afanasev.sekret.gradle
+package net.afanasev.sekret.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

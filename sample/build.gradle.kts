@@ -17,7 +17,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "dev.afanasev.sekret.sample.AppKt"
+    mainClassName = "net.afanasev.sekret.sample.AppKt"
 }
 
 val kotlinPlugin = ":kotlin-plugin"

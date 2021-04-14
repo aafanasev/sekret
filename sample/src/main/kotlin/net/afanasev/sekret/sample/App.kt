@@ -1,11 +1,11 @@
-package dev.afanasev.sekret.sample
+package net.afanasev.sekret.sample
 
-import dev.afanasev.sekret.Secret
+import net.afanasev.sekret.Secret
 
 data class User(
-        val login: String,
-        @Secret val password: String,
-        @Secret val student: Student
+    val login: String,
+    @Secret val password: String,
+    @Secret val student: Student
 )
 
 data class Admin(
@@ -19,15 +19,15 @@ class Student(
 )
 
 data class DifferentTypes(
-        @Secret val integer: Int,
-        val string: String,
-        @Secret val boolean: Boolean
+    @Secret val integer: Int,
+    val string: String,
+    @Secret val boolean: Boolean
 )
 
 @Suppress("ArrayInDataClass")
 data class Arrays(
-        @Secret val ints: IntArray,
-        @Secret val strings: Array<String>
+    @Secret val ints: IntArray,
+    @Secret val strings: Array<String>
 )
 
 abstract class Base(
@@ -39,11 +39,11 @@ abstract class Base(
 )
 
 data class BaseImpl(
-        @Secret override val str: String,
-        @Secret override val id: Int?,
-        @Secret override val arr: Array<String>,
-        @Secret val str2: String,
-        val str3: String
+    @Secret override val str: String,
+    @Secret override val id: Int?,
+    @Secret override val arr: Array<String>,
+    @Secret val str2: String,
+    val str3: String
 ) : Base(str, id, arr, str3)
 
 fun main() {

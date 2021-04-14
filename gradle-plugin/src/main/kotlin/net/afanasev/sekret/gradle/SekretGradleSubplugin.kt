@@ -1,4 +1,4 @@
-package dev.afanasev.sekret.gradle
+package net.afanasev.sekret.gradle
 
 import com.google.auto.service.AutoService
 import org.gradle.api.Project
@@ -40,6 +40,6 @@ class SekretGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
 
     override fun getCompilerPluginId() = "sekret"
 
-    override fun getPluginArtifact() = SubpluginArtifact("dev.afanasev", "sekret-kotlin-plugin", "0.0.10")
+    override fun getPluginArtifact() = SubpluginArtifact("net.afanasev", "sekret-kotlin-plugin", "0.1.0")
 
 }
