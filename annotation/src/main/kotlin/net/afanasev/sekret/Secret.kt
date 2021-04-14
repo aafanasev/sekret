@@ -1,4 +1,4 @@
-package dev.afanasev.sekret
+package net.afanasev.sekret
 
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.BINARY)

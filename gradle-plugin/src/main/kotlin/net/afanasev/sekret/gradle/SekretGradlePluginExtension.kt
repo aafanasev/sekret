@@ -1,4 +1,4 @@
-package dev.afanasev.sekret.gradle
+package net.afanasev.sekret.gradle
 
 open class SekretGradlePluginExtension {
 
