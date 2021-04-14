@@ -16,10 +16,10 @@ dependencies {
 gradlePlugin {
     plugins {
         create("sekretPlugin") {
-            id = "dev.afanasev.sekret"
+            id = "net.afanasev.sekret"
             displayName = "Sekret Gradle plugin"
             description = "Hide sensitive information in toString() of Kotlin Data classes"
-            implementationClass = "dev.afanasev.sekret.gradle.SekretGradlePlugin"
+            implementationClass = "net.afanasev.sekret.gradle.SekretGradlePlugin"
         }
     }
 }

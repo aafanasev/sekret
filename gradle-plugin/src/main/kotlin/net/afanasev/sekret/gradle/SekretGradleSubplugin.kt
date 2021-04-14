@@ -40,6 +40,6 @@ class SekretGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
 
     override fun getCompilerPluginId() = "sekret"
 
-    override fun getPluginArtifact() = SubpluginArtifact("dev.afanasev", "sekret-kotlin-plugin", "0.1.0")
+    override fun getPluginArtifact() = SubpluginArtifact("net.afanasev", "sekret-kotlin-plugin", "0.1.0")
 
 }

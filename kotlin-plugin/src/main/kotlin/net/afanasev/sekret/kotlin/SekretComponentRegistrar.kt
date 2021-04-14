@@ -21,7 +21,7 @@ class SekretComponentRegistrar : ComponentRegistrar {
             return
         }
 
-        val annotations = configuration.get(KEY_ANNOTATIONS, listOf("dev.afanasev.sekret.Secret"))
+        val annotations = configuration.get(KEY_ANNOTATIONS, listOf("net.afanasev.sekret.Secret"))
         val mask = configuration.get(KEY_MASK, "■■■")
         val maskNulls = configuration.get(KEY_MASK_NULLS, true)
 
