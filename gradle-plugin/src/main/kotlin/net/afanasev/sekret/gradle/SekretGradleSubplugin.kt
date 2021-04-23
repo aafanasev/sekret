@@ -9,6 +9,9 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinGradleSubplugin
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 
+/**
+ * Kotlin gradle subplugin that adds the compiler dependency to Gradle project
+ */
 @AutoService(KotlinGradleSubplugin::class)
 class SekretGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
 
