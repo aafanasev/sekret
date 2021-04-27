@@ -30,6 +30,7 @@ pluginBundle {
     tags = listOf("kotlin", "data class", "toString", "secret")
 
     mavenCoordinates {
+        groupId = "net.afanasev"
         artifactId = "sekret-gradle-plugin"
     }
 }
