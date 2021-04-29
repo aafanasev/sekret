@@ -43,14 +43,14 @@ publishing {
 
     publications {
         create<MavenPublication>("maven") {
-            artifactId = "sekret-compiler"
+            artifactId = "sekret-kotlin-plugin"
 
             from(components["java"])
             artifact(sourcesJar.get())
             artifact(javadocJar.get())
 
             pom {
-                name.set("Sekret compiler")
+                name.set("Sekret compiler - kotlin plugin")
                 description.set("Kotlin compiler for Sekret library")
                 url.set("https://github.com/aafanasev/sekret")
 
