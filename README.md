@@ -1,6 +1,6 @@
 # Sekret
 
-[ ![Download](https://api.bintray.com/packages/aafanasev/maven/sekret-annotation/images/download.svg) ](https://bintray.com/aafanasev/maven/sekret-annotation/_latestVersion)
+![maven](https://maven-badges.herokuapp.com/maven-central/net.afanasev/sekret-annotaion/badge.svg)
 
 Kotlin compiler plugin that hides data class properties in generated `toString()` method
 
@@ -40,7 +40,7 @@ Apply plugin:
 
 ```groovy
 plugins {
-    id 'dev.afanasev.sekret' version '0.0.7'
+    id 'net.afanasev.sekret' version '0.1.0'
 }
 ```
 
@@ -48,7 +48,7 @@ Configure:
 ```groovy
 // Download @Secret annotation
 dependencies {
-    compile 'dev.afanasev:sekret-annotation:0.0.7'
+    compile 'net.afanasev:sekret-annotation:0.1.0'
 }
 
 // OR use your own
@@ -62,7 +62,7 @@ sekret {
     // true by default
     maskNulls = false  
     
-    // "dev.afanasev.sekret.Secret" by default
+    // "net.afanasev.sekret.Secret" by default
     annotations = ["com.sample.YourAnnotation"] 
 }
 ```
