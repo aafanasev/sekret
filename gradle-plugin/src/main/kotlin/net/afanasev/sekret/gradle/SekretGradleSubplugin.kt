@@ -1,48 +1,47 @@
 package net.afanasev.sekret.gradle
 
-import com.google.auto.service.AutoService
 import org.gradle.api.Project
-import org.gradle.api.tasks.compile.AbstractCompile
-import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
+import org.gradle.api.provider.Provider
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
-import org.jetbrains.kotlin.gradle.plugin.KotlinGradleSubplugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilerPluginSupportPlugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.SubpluginArtifact
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
+import javax.inject.Inject
 
 /**
  * Kotlin gradle subplugin that adds the compiler dependency to Gradle project
  */
-@AutoService(KotlinGradleSubplugin::class)
-class SekretGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
+class SekretGradleSubplugin @Inject internal constructor(
+    private val registry: ToolingModelBuilderRegistry,
+) : KotlinCompilerPluginSupportPlugin {
 
-    override fun isApplicable(project: Project, task: AbstractCompile) =
-            project.plugins.hasPlugin(SekretGradlePlugin::class.java)
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean =
+        (kotlinCompilation.platformType == KotlinPlatformType.jvm || kotlinCompilation.platformType == KotlinPlatformType.androidJvm)
 
-    override fun apply(
-            project: Project,
-            kotlinCompile: AbstractCompile,
-            javaCompile: AbstractCompile?,
-            variantData: Any?,
-            androidProjectHandler: Any?,
-            kotlinCompilation: KotlinCompilation<KotlinCommonOptions>?
-    ): List<SubpluginOption> {
-        val extension = project.extensions.findByType(SekretGradlePluginExtension::class.java)
-                ?: SekretGradlePluginExtension()
+    override fun apply(target: Project) {
+        target.extensions.create("sekret", SekretGradlePluginExtension::class.java)
+    }
 
-        if (extension.enabled && extension.annotations.isEmpty()) {
-            error("Sekret is enabled, but no annotations were set")
+    override fun applyToCompilation(kotlinCompilation: KotlinCompilation<*>): Provider<List<SubpluginOption>> {
+        val project = kotlinCompilation.target.project
+
+        return project.provider {
+            val extension = project.extensions.getByType(SekretGradlePluginExtension::class.java)
+
+            val mask = SubpluginOption("mask", extension.mask)
+            val enabled = SubpluginOption("enabled", extension.enabled.toString())
+            val maskNulls = SubpluginOption("maskNulls", extension.maskNulls.toString())
+            val annotations = extension.annotations.map { SubpluginOption("annotations", it) }
+
+            annotations + mask + enabled + maskNulls
         }
-
-        val mask = SubpluginOption("mask", extension.mask)
-        val enabled = SubpluginOption("enabled", extension.enabled.toString())
-        val maskNulls = SubpluginOption("maskNulls", extension.maskNulls.toString())
-        val annotations = extension.annotations.map { SubpluginOption("annotations", it) }
-
-        return annotations + mask + enabled + maskNulls
     }
 
     override fun getCompilerPluginId() = "sekret"
 
     override fun getPluginArtifact() = SubpluginArtifact("net.afanasev", "sekret-kotlin-plugin", "0.1.0")
+
 
 }
