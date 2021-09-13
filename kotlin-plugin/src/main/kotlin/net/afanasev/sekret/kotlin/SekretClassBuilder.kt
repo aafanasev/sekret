@@ -61,6 +61,7 @@ class SekretClassBuilder(
     ): MethodVisitor {
         return if (name == "toString" && origin.descriptor?.isInDataClass() == true) {
             generateToString = true
+            // skipping toString generation as it will be constructed manually in done() function.
             object : MethodVisitor(Opcodes.ASM5) {}
         } else {
             super.newMethod(origin, access, name, desc, signature, exceptions)
@@ -69,10 +70,26 @@ class SekretClassBuilder(
 
     override fun done() {
         if (generateToString) {
-            //throw RuntimeException(order)
+            generateToString()
         }
 
         super.done()
+    }
+
+    private fun generateToString() {
+        val mv = newMethod(
+            JvmDeclarationOrigin.NO_ORIGIN, Opcodes.ACC_PUBLIC, "toString", "()Ljava/lang/String;", null, null,
+        )
+        mv.visitCode()
+//        mv.visitTypeInsn(Opcodes.NEW, "java/lang/StringBuilder")
+//        mv.visitInsn(Opcodes.DUP)
+//        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false)
+        mv.visitLdcInsn("hello")
+//        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false)
+//        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
+        mv.visitInsn(Opcodes.ARETURN)
+        //mv.visitMaxs(1, 1)
+        mv.visitEnd()
     }
 
     private companion object {
