@@ -7,7 +7,6 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.descriptors.IrBasedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
@@ -17,13 +16,10 @@ class SekretClassBuilder(
     internal val classBuilder: ClassBuilder,
     annotations: List<String>,
     private val mask: String,
-    @Deprecated("to be removed") private val maskNulls: Boolean
 ) : DelegatingClassBuilder() {
 
     private val annotations: List<FqName> = annotations.map { FqName(it) }
     private val fields = linkedMapOf<String, Pair<String, Boolean>>()
-
-    private var order = ""
     private var generateToString = false
 
     override fun getDelegate(): ClassBuilder = classBuilder
@@ -66,7 +62,6 @@ class SekretClassBuilder(
         if (generateToString) {
             generateToString()
         }
-
         super.done()
     }
 
@@ -129,6 +124,13 @@ class SekretClassBuilder(
         mv.visitEnd()
     }
 
+    private fun isInDataClass(descriptor: DeclarationDescriptor?): Boolean {
+        if (descriptor is IrBasedSimpleFunctionDescriptor) {
+            return descriptor.owner.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER
+        }
+        return false
+    }
+
     private fun appendToStringBuilder(methodVisitor: MethodVisitor, descriptor: String = "Ljava/lang/String;") {
         methodVisitor.visitMethodInsn(
             Opcodes.INVOKEVIRTUAL,
@@ -144,15 +146,4 @@ class SekretClassBuilder(
         val STRING_BUILDER_SUPPORTED_DESCRIPTORS =
             setOf("Ljava/lang/String;", "Ljava/lang/StringBuffer;", "Ljava/lang/CharSequence;")
     }
-
-    private fun JvmDeclarationOrigin.classDescriptor() =
-        descriptor?.containingDeclaration?.fqNameSafe?.asString()?.replace('.', '/')
-
-    private fun isInDataClass(descriptor: DeclarationDescriptor?): Boolean {
-        if (descriptor is IrBasedSimpleFunctionDescriptor) {
-            return descriptor.owner.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER
-        }
-        return false
-    }
-
 }

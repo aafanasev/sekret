@@ -9,19 +9,18 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 
 class SekretClassGenerationInterceptor(
-        private val annotations: List<String>,
-        private val mask: String,
-        private val maskNulls: Boolean
+    private val annotations: List<String>,
+    private val mask: String,
 ) : ClassBuilderInterceptorExtension {
 
     override fun interceptClassBuilderFactory(
-            interceptedFactory: ClassBuilderFactory,
-            bindingContext: BindingContext,
-            diagnostics: DiagnosticSink
+        interceptedFactory: ClassBuilderFactory,
+        bindingContext: BindingContext,
+        diagnostics: DiagnosticSink
     ) = object : ClassBuilderFactory {
 
         override fun newClassBuilder(origin: JvmDeclarationOrigin): ClassBuilder {
-            return SekretClassBuilder(interceptedFactory.newClassBuilder(origin), annotations, mask, maskNulls)
+            return SekretClassBuilder(interceptedFactory.newClassBuilder(origin), annotations, mask)
         }
 
         override fun getClassBuilderMode(): ClassBuilderMode {
