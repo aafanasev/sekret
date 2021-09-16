@@ -40,7 +40,7 @@ Apply plugin:
 
 ```groovy
 plugins {
-    id 'net.afanasev.sekret' version '0.1.0'
+    id 'net.afanasev.sekret' version '0.1.1-RC1'
 }
 ```
 
@@ -48,7 +48,7 @@ Configure:
 ```groovy
 // Download @Secret annotation
 dependencies {
-    compile 'net.afanasev:sekret-annotation:0.1.0'
+    compile 'net.afanasev:sekret-annotation:0.1.1-RC1'
 }
 
 // OR use your own
@@ -58,9 +58,6 @@ sekret {
     
     // true by default
     enabled = true  
-    
-    // true by default
-    maskNulls = false  
     
     // "net.afanasev.sekret.Secret" by default
     annotations = ["com.sample.YourAnnotation"] 
