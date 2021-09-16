@@ -13,7 +13,7 @@ import javax.inject.Inject
 /**
  * Kotlin gradle subplugin that adds the compiler dependency to Gradle project
  */
-class SekretGradleSubplugin @Inject internal constructor(
+class SekretGradlePlugin @Inject internal constructor(
     private val registry: ToolingModelBuilderRegistry,
 ) : KotlinCompilerPluginSupportPlugin {
 
