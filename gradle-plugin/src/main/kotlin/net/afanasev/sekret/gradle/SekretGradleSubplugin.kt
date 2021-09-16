@@ -32,10 +32,9 @@ class SekretGradleSubplugin @Inject internal constructor(
 
             val mask = SubpluginOption("mask", extension.mask)
             val enabled = SubpluginOption("enabled", extension.enabled.toString())
-            val maskNulls = SubpluginOption("maskNulls", extension.maskNulls.toString())
             val annotations = extension.annotations.map { SubpluginOption("annotations", it) }
 
-            annotations + mask + enabled + maskNulls
+            annotations + mask + enabled
         }
     }
 
