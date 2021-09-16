@@ -2,172 +2,148 @@ package net.afanasev.sekret.kotlin
 
 import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.DelegatingClassBuilder
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.descriptors.IrBasedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.org.objectweb.asm.FieldVisitor
-import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
-import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
 class SekretClassBuilder(
-        internal val classBuilder: ClassBuilder,
-        annotations: List<String>,
-        private val mask: String,
-        private val maskNulls: Boolean
+    internal val classBuilder: ClassBuilder,
+    annotations: List<String>,
+    private val mask: String,
 ) : DelegatingClassBuilder() {
 
     private val annotations: List<FqName> = annotations.map { FqName(it) }
-    private val secretFields = mutableSetOf<String>()
-    private val secretArrayFields = mutableSetOf<String>()
+    private val fields = linkedMapOf<String, Pair<String, Boolean>>()
+    private var generateToString = false
 
     override fun getDelegate(): ClassBuilder = classBuilder
 
     override fun newField(
-            origin: JvmDeclarationOrigin,
-            access: Int,
-            name: String,
-            desc: String,
-            signature: String?,
-            value: Any?
+        origin: JvmDeclarationOrigin,
+        access: Int,
+        name: String,
+        desc: String,
+        signature: String?,
+        value: Any?
     ): FieldVisitor {
-        (origin.descriptor as? PropertyDescriptor)?.backingField?.let { descriptor ->
-            if (annotations.any { descriptor.annotations.hasAnnotation(it) }) {
-                secretFields.add(name)
-                if (desc.first() == '[') {
-                    secretArrayFields.add(name)
-                }
+        if (generateToString) {
+            (origin.descriptor as? PropertyDescriptor)?.let { descriptor ->
+                val hide = annotations.any { descriptor.annotations.hasAnnotation(it) }
+                fields[name] = Pair(desc, hide)
             }
         }
-
         return super.newField(origin, access, name, desc, signature, value)
     }
 
     override fun newMethod(
-            origin: JvmDeclarationOrigin,
-            access: Int,
-            name: String,
-            desc: String,
-            signature: String?,
-            exceptions: Array<out String>?
+        origin: JvmDeclarationOrigin,
+        access: Int,
+        name: String,
+        desc: String,
+        signature: String?,
+        exceptions: Array<out String>?
     ): MethodVisitor {
-        val original = super.newMethod(origin, access, name, desc, signature, exceptions)
-
-        if (name != "toString") {
-            return original
+        return if (name == "toString" && isInDataClass(origin.descriptor)) {
+            generateToString = true
+            // skipping toString generation as it will be constructed manually in done() function.
+            object : MethodVisitor(Opcodes.ASM5) {}
+        } else {
+            super.newMethod(origin, access, name, desc, signature, exceptions)
         }
+    }
 
-        return object : MethodVisitor(Opcodes.ASM5, original) {
+    override fun done() {
+        if (generateToString) {
+            generateToString()
+        }
+        super.done()
+    }
 
-            private var appendLabel: Label? = null
-            private var skipNextInstruction: Boolean = false
-            private var replaceAppendDescriptor: Boolean = false
+    private fun generateToString() {
+        val mv = newMethod(
+            JvmDeclarationOrigin.NO_ORIGIN, Opcodes.ACC_PUBLIC, "toString", "()Ljava/lang/String;", null, null,
+        )
+        mv.visitCode()
+        mv.visitTypeInsn(Opcodes.NEW, STRING_BUILDER)
+        mv.visitInsn(Opcodes.DUP)
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, STRING_BUILDER, "<init>", "()V", false)
+        mv.visitLdcInsn("${thisName.split("/").last()}(")
+        appendToStringBuilder(mv)
 
-            override fun visitFieldInsn(opcode: Int, owner: String?, name: String?, descriptor: String?) {
-                if (opcode == Opcodes.GETFIELD && secretFields.contains(name)) {
-                    skipNextInstruction = secretArrayFields.contains(name)
-                    replaceAppendDescriptor = true
+        fields.onEachIndexed { index, entry ->
+            val name = entry.key
+            val desc = entry.value.first
+            val needToHide = entry.value.second
 
-                    if (maskNulls) {
-                        InstructionAdapter(this).apply {
-                            pop()
-                            visitLdcInsn(mask)
-                        }
-                    } else {
-                        super.visitFieldInsn(opcode, owner, name, descriptor)
-                        addInstructionsToPrintNullsAsIs()
+            mv.visitLdcInsn((if (index == 0) "" else ", ") + "$name=")
+            appendToStringBuilder(mv)
+
+            if (needToHide) {
+                mv.visitLdcInsn(mask)
+                appendToStringBuilder(mv)
+            } else {
+                mv.visitVarInsn(Opcodes.ALOAD, 0)
+                mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, desc)
+
+                when {
+                    // primitives or descriptors supported by StringBuilder
+                    desc.length == 1 || STRING_BUILDER_SUPPORTED_DESCRIPTORS.contains(desc) -> {
+                        appendToStringBuilder(mv, desc)
                     }
-                } else {
-                    super.visitFieldInsn(opcode, owner, name, descriptor)
-                }
-            }
-
-            override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
-                val field = getFieldFromGetter(opcode, owner, name)
-                if (field != null && secretFields.contains(field)) {
-                    skipNextInstruction = secretArrayFields.contains(field)
-                    replaceAppendDescriptor = true
-
-                    if (maskNulls) {
-                        InstructionAdapter(this).apply {
-                            pop()
-                            visitLdcInsn(mask)
-                        }
-                    } else {
-                        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface)
-                        addInstructionsToPrintNullsAsIs()
+                    // arrays
+                    desc[0] == '[' -> {
+                        val isPrimitiveArray = desc.length == 2
+                        mv.visitMethodInsn(
+                            Opcodes.INVOKESTATIC,
+                            "java/util/Arrays",
+                            "toString",
+                            "(${if (isPrimitiveArray) desc else "[Ljava/lang/Object;"})Ljava/lang/String;",
+                            false,
+                        )
+                        appendToStringBuilder(mv)
                     }
-
-                    return
-                }
-
-                // skip Array.toString() method
-                if (skipNextInstruction) {
-                    skipNextInstruction = false
-                    return
-                }
-
-                val newDescriptor = if (
-                        opcode == Opcodes.INVOKEVIRTUAL
-                        && owner == STRING_BUILDER
-                        && name == APPEND_METHOD
-                        && replaceAppendDescriptor
-                ) {
-                    replaceAppendDescriptor = false
-
-                    appendLabel?.let {
-                        visitLabel(appendLabel)
-                        appendLabel = null
+                    // others goes as Object
+                    else -> {
+                        appendToStringBuilder(mv, "Ljava/lang/Object;")
                     }
-
-                    APPEND_DESCRIPTOR
-                } else {
-                    descriptor
-                }
-
-                super.visitMethodInsn(opcode, owner, name, newDescriptor, isInterface)
-            }
-
-            private fun getFieldFromGetter(opcode: Int, owner: String?, name: String?): String? {
-                if (
-                        opcode != Opcodes.INVOKEVIRTUAL
-                        || owner != origin.classDescriptor()
-                        || name?.startsWith("get") != true
-                ) {
-                    return null
-                }
-
-                return name.substring(3).decapitalize()
-            }
-
-            private fun addInstructionsToPrintNullsAsIs() {
-                appendLabel = Label()
-                val ifNullLabel = Label()
-
-                InstructionAdapter(this).apply {
-                    ifnull(ifNullLabel)
-
-                    visitLabel(Label())
-                    visitLdcInsn(mask)
-                    goTo(appendLabel)
-
-                    visitLabel(ifNullLabel)
-                    visitLdcInsn("null")
-                    goTo(appendLabel)
                 }
             }
         }
+
+        mv.visitLdcInsn(")")
+        appendToStringBuilder(mv)
+
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, STRING_BUILDER, "toString", "()Ljava/lang/String;", false)
+        mv.visitInsn(Opcodes.ARETURN)
+        mv.visitEnd()
+    }
+
+    private fun isInDataClass(descriptor: DeclarationDescriptor?): Boolean {
+        if (descriptor is IrBasedSimpleFunctionDescriptor) {
+            return descriptor.owner.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER
+        }
+        return false
+    }
+
+    private fun appendToStringBuilder(methodVisitor: MethodVisitor, descriptor: String = "Ljava/lang/String;") {
+        methodVisitor.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            STRING_BUILDER,
+            "append",
+            "($descriptor)Ljava/lang/StringBuilder;",
+            false,
+        )
     }
 
     private companion object {
         const val STRING_BUILDER = "java/lang/StringBuilder"
-        const val APPEND_METHOD = "append"
-        const val APPEND_DESCRIPTOR = "(Ljava/lang/String;)Ljava/lang/StringBuilder;"
+        val STRING_BUILDER_SUPPORTED_DESCRIPTORS =
+            setOf("Ljava/lang/String;", "Ljava/lang/StringBuffer;", "Ljava/lang/CharSequence;")
     }
-
-    private fun JvmDeclarationOrigin.classDescriptor() =
-            descriptor?.containingDeclaration?.fqNameSafe?.asString()?.replace('.', '/')
-
 }

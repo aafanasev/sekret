@@ -9,13 +9,13 @@ data class User(
 )
 
 data class Admin(
-        val login: String,
-        @Secret val password: String
+    val login: String,
+    @Secret val password: String
 )
 
 class Student(
-        val login: String,
-        val password: String
+    val login: String,
+    val password: String
 )
 
 data class DifferentTypes(
@@ -31,10 +31,10 @@ data class Arrays(
 )
 
 abstract class Base(
-        open val str: String,
-        open val id: Int?,
-        open val arr: Array<String>,
-        val hash: String
+    open val str: String,
+    open val id: Int?,
+    open val arr: Array<String>,
+    val hash: String
 
 )
 
