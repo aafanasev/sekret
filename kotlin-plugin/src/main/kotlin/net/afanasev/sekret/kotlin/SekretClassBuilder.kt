@@ -8,18 +8,23 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.descriptors.IrBasedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
+import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.org.objectweb.asm.FieldVisitor
+import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
+
+typealias FieldInfo = Triple<String, Boolean, Boolean>
 
 class SekretClassBuilder(
     internal val classBuilder: ClassBuilder,
     annotations: List<String>,
     private val mask: String,
+    private val maskNulls: Boolean,
 ) : DelegatingClassBuilder() {
 
     private val annotations: List<FqName> = annotations.map { FqName(it) }
-    private val fields = linkedMapOf<String, Pair<String, Boolean>>()
+    private val fields = linkedMapOf<String, FieldInfo>()
     private var generateToString = false
 
     override fun getDelegate(): ClassBuilder = classBuilder
@@ -35,7 +40,7 @@ class SekretClassBuilder(
         if (generateToString) {
             (origin.descriptor as? PropertyDescriptor)?.let { descriptor ->
                 val hide = annotations.any { descriptor.annotations.hasAnnotation(it) }
-                fields[name] = Pair(desc, hide)
+                fields[name] = FieldInfo(desc, hide, descriptor.type.isNullable())
             }
         }
         return super.newField(origin, access, name, desc, signature, value)
@@ -80,13 +85,32 @@ class SekretClassBuilder(
             val name = entry.key
             val desc = entry.value.first
             val needToHide = entry.value.second
+            val isNullable = entry.value.third
 
             mv.visitLdcInsn((if (index == 0) "" else ", ") + "$name=")
             appendToStringBuilder(mv)
 
             if (needToHide) {
-                mv.visitLdcInsn(mask)
-                appendToStringBuilder(mv)
+                if (maskNulls && isNullable) {
+                    val loadNullLabel = Label()
+                    val appendStringLabel = Label()
+
+                    mv.visitVarInsn(Opcodes.ALOAD, 0)
+                    mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, desc)
+                    mv.visitJumpInsn(Opcodes.IFNULL, loadNullLabel)
+
+                    mv.visitLdcInsn(mask)
+                    mv.visitJumpInsn(Opcodes.GOTO, appendStringLabel)
+
+                    mv.visitLabel(loadNullLabel)
+                    mv.visitLdcInsn("null")
+
+                    mv.visitLabel(appendStringLabel)
+                    appendToStringBuilder(mv)
+                } else {
+                    mv.visitLdcInsn(mask)
+                    appendToStringBuilder(mv)
+                }
             } else {
                 mv.visitVarInsn(Opcodes.ALOAD, 0)
                 mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, desc)
@@ -108,7 +132,7 @@ class SekretClassBuilder(
                         )
                         appendToStringBuilder(mv)
                     }
-                    // others goes as Object
+                    // others go as Object
                     else -> {
                         appendToStringBuilder(mv, "Ljava/lang/Object;")
                     }
