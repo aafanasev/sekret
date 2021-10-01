@@ -9,8 +9,8 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("gradle-plugin-api"))
 
-    compileOnly("com.google.auto.service:auto-service:1.0-rc4")
-    kapt("com.google.auto.service:auto-service:1.0-rc4")
+    compileOnly("com.google.auto.service:auto-service:1.0")
+    kapt("com.google.auto.service:auto-service:1.0")
 }
 
 gradlePlugin {

@@ -32,15 +32,16 @@ class SekretGradlePlugin @Inject internal constructor(
 
             val mask = SubpluginOption("mask", extension.mask)
             val enabled = SubpluginOption("enabled", extension.enabled.toString())
+            val maskNulls = SubpluginOption("maskNulls", extension.maskNulls.toString())
             val annotations = extension.annotations.map { SubpluginOption("annotations", it) }
 
-            annotations + mask + enabled
+            annotations + mask + enabled + maskNulls
         }
     }
 
     override fun getCompilerPluginId() = "sekret"
 
-    override fun getPluginArtifact() = SubpluginArtifact("net.afanasev", "sekret-kotlin-plugin", "0.1.1-RC1")
+    override fun getPluginArtifact() = SubpluginArtifact("net.afanasev", "sekret-kotlin-plugin", "0.1.1-RC2")
 
 
 }
