@@ -1,13 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.5.30" apply false
+    kotlin("jvm") version "1.5.31" apply false
 }
 
 allprojects {
 
     group = "net.afanasev"
-    version = "0.1.1-RC2"
+    version = "0.1.1-RC3"
 
     repositories {
         mavenCentral()

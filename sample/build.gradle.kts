@@ -6,7 +6,6 @@ plugins {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
     implementation(project(":annotation"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")

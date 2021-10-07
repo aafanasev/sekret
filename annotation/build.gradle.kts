@@ -6,10 +6,6 @@ plugins {
     id("signing")
 }
 
-dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-}
-
 val sourcesJar by tasks.registering(Jar::class) {
     dependsOn(JavaPlugin.CLASSES_TASK_NAME)
     from(sourceSets["main"].allSource)
