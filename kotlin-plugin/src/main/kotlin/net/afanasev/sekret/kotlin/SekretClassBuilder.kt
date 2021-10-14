@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.descriptors.IrBasedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.org.objectweb.asm.FieldVisitor
@@ -24,7 +25,7 @@ class SekretClassBuilder(
 ) : DelegatingClassBuilder() {
 
     private val annotations: List<FqName> = annotations.map { FqName(it) }
-    private val fields = linkedMapOf<String, FieldInfo>()
+    private val fields = linkedMapOf<String, FieldInfo?>()
     private var generateToString = false
 
     override fun getDelegate(): ClassBuilder = classBuilder
@@ -40,7 +41,9 @@ class SekretClassBuilder(
         if (generateToString) {
             (origin.descriptor as? PropertyDescriptor)?.let { descriptor ->
                 val hide = annotations.any { descriptor.annotations.hasAnnotation(it) }
-                fields[name] = FieldInfo(desc, hide, descriptor.type.isNullable())
+                if (fields.contains(name)) {
+                    fields[name] = FieldInfo(desc, hide, descriptor.type.isNullable())
+                }
             }
         }
         return super.newField(origin, access, name, desc, signature, value)
@@ -57,7 +60,25 @@ class SekretClassBuilder(
         return if (name == "toString" && isInDataClass(origin.descriptor)) {
             generateToString = true
             // skipping toString generation as it will be constructed manually in done() function.
-            object : MethodVisitor(Opcodes.ASM5) {}
+            object : MethodVisitor(Opcodes.ASM5) {
+                override fun visitFieldInsn(opcode: Int, owner: String, name: String, descriptor: String) {
+                    if (opcode == Opcodes.GETFIELD) {
+                        fields[name] = null
+                    }
+                }
+
+                override fun visitMethodInsn(
+                    opcode: Int,
+                    owner: String,
+                    name: String,
+                    descriptor: String,
+                    isInterface: Boolean
+                ) {
+                    if (opcode == Opcodes.INVOKEVIRTUAL && owner == origin.classDescriptor() && name.startsWith("get")) {
+                        fields[name.substring(3).replaceFirstChar { it.lowercase() }] = null
+                    }
+                }
+            }
         } else {
             super.newMethod(origin, access, name, desc, signature, exceptions)
         }
@@ -83,9 +104,10 @@ class SekretClassBuilder(
 
         fields.onEachIndexed { index, entry ->
             val name = entry.key
-            val desc = entry.value.first
-            val needToHide = entry.value.second
-            val isNullable = entry.value.third
+            val fieldInfo = entry.value!!
+            val desc = fieldInfo.first
+            val needToHide = fieldInfo.second
+            val isNullable = fieldInfo.third
 
             mv.visitLdcInsn((if (index == 0) "" else ", ") + "$name=")
             appendToStringBuilder(mv)
@@ -164,6 +186,9 @@ class SekretClassBuilder(
             false,
         )
     }
+
+    private fun JvmDeclarationOrigin.classDescriptor() =
+        descriptor?.containingDeclaration?.fqNameSafe?.asString()?.replace('.', '/')
 
     private companion object {
         const val STRING_BUILDER = "java/lang/StringBuilder"

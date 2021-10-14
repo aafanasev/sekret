@@ -34,8 +34,7 @@ abstract class Base(
     open val str: String,
     open val id: Int?,
     open val arr: Array<String>,
-    val hash: String
-
+    val hash: String,
 )
 
 data class BaseImpl(
@@ -45,6 +44,26 @@ data class BaseImpl(
     @Secret val str2: String,
     val str3: String
 ) : Base(str, id, arr, str3)
+
+@Suppress("ArrayInDataClass")
+data class Complex(
+    @Secret val str: String,
+    @Secret val int: Int,
+    @Secret val long: Long,
+    @Secret val float: Float,
+    @Secret val list: List<String>,
+    @Secret val array: Array<Char>,
+    @Secret var boolean: Boolean,
+    val admin: Admin,
+    @Secret val student: Student,
+) {
+    companion object {
+        const val CONST = "const"
+    }
+
+    val field1 = ""
+    var field2 = false
+}
 
 fun main() {
     val student = Student("John", "Snow")
@@ -58,4 +77,18 @@ fun main() {
     println(Arrays(intArrayOf(1, 2), arrayOf("one", "two")))
 
     println(BaseImpl("str", null, arrayOf("he", "lo"), "str2", "str3"))
+
+    println(
+        Complex(
+            str = "string",
+            int = 3,
+            long = 4L,
+            float = 2f,
+            list = listOf(),
+            array = arrayOf(),
+            boolean = true,
+            admin = Admin("admin", "pwd"),
+            student = Student("student", "pwd"),
+        )
+    )
 }
