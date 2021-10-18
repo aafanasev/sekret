@@ -1,6 +1,7 @@
 # Sekret
 
-![maven](https://maven-badges.herokuapp.com/maven-central/net.afanasev/sekret-annotaion/badge.svg)
+![maven](https://maven-badges.herokuapp.com/maven-central/net.afanasev/sekret-annotation/badge.svg?style=flat
+)
 
 Kotlin compiler plugin that hides data class properties in generated `toString()` method
 
@@ -40,7 +41,7 @@ Apply plugin:
 
 ```groovy
 plugins {
-    id 'net.afanasev.sekret' version '0.1.1-RC2'
+    id 'net.afanasev.sekret' version '<version>'
 }
 ```
 
@@ -48,7 +49,7 @@ Configure:
 ```groovy
 // Download @Secret annotation
 dependencies {
-    compile 'net.afanasev:sekret-annotation:0.1.1-RC2'
+    compile 'net.afanasev:sekret-annotation:<version>'
 }
 
 // OR use your own
@@ -80,3 +81,7 @@ kotlinc \
 
 - [Medium](https://medium.com/@jokuskay/how-to-exclude-properties-from-tostring-of-kotlin-data-classes-f8dc04b8c45e)
 - [Habr](https://habr.com/ru/company/digital-ecosystems/blog/459062/)
+
+## Code of Conduct
+
+Please refer to [Code of Conduct](CODE_OF_CONDUCT.md) document.
