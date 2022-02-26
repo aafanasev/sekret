@@ -7,7 +7,7 @@ plugins {
 allprojects {
 
     group = "net.afanasev"
-    version = "0.1.1-RC3"
+    version = "0.1.1"
 
     repositories {
         mavenCentral()
