@@ -1,9 +1,15 @@
-/.gradle
-/build
-/out
+.gradle/
+
+# exclude buid directories - unless they are in a src/ directory
+target/
+!src/**/target/
+out/
+!src/**/out/
+build/
+!src/**/build/
 
 .DS_Store
 Thumbs.db
 
-/.idea
+.idea/
 *.iml

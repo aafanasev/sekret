@@ -1,7 +1,6 @@
 # Sekret
 
-![maven](https://maven-badges.herokuapp.com/maven-central/net.afanasev/sekret-annotation/badge.svg?style=flat
-)
+![maven](https://maven-badges.herokuapp.com/maven-central/net.afanasev/sekret-annotation/badge.svg?style=flat)
 
 Kotlin compiler plugin that hides data class properties in generated `toString()` method
 

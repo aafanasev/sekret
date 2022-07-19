@@ -1,7 +1,7 @@
 package net.afanasev.sekret
 
 /**
- * Marks Data class property as non-printable in toString()
+ * Marks `data class` properties as non-printable in `toString()`
  */
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.BINARY)

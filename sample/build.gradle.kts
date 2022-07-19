@@ -1,12 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm")
+    buildsrc.convention.subproject
+    buildsrc.convention.`kotlin-jvm`
     application
 }
 
 dependencies {
-    implementation(project(":annotation"))
+    implementation(projects.annotation)
+    implementation(projects.kotlinPlugin)
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
@@ -16,19 +18,19 @@ dependencies {
 }
 
 application {
-    mainClassName = "net.afanasev.sekret.sample.AppKt"
+    mainClass.set("net.afanasev.sekret.sample.AppKt")
 }
 
 val kotlinPlugin = ":kotlin-plugin"
 
-tasks.withType<KotlinCompile> {
+tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
-        freeCompilerArgs = listOf("-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin-$version.jar")
+        freeCompilerArgs =
+            listOf("-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin-$version.jar")
     }
-    dependsOn(project(kotlinPlugin).getTasksByName("build", false))
 }
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     useJUnitPlatform {
         includeEngines("spek2")
     }
