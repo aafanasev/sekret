@@ -1,3 +1,7 @@
+plugins {
+    base
+}
+
 group = "net.afanasev"
 version = "0.1.2"
 
