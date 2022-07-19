@@ -1,5 +1,6 @@
 plugins {
-    kotlin("jvm")
+    buildsrc.convention.subproject
+    buildsrc.convention.`kotlin-jvm`
     kotlin("kapt")
     `java-gradle-plugin`
     id("com.gradle.plugin-publish") version "0.11.0"
