@@ -4,9 +4,9 @@
 target/
 !src/**/target/
 out/
-!src/out/
+!src/**/out/
 build/
-!src/build/
+!src/**/build/
 
 .DS_Store
 Thumbs.db
