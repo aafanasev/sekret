@@ -15,8 +15,6 @@ import org.jetbrains.org.objectweb.asm.Label
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
-typealias FieldInfo = Triple<String, Boolean, Boolean>
-
 class SekretClassBuilder(
     internal val classBuilder: ClassBuilder,
     annotations: List<String>,
@@ -61,8 +59,14 @@ class SekretClassBuilder(
             generateToString = true
             // skipping toString generation as it will be constructed manually in done() function.
             object : MethodVisitor(Opcodes.ASM5) {
-                override fun visitFieldInsn(opcode: Int, owner: String, name: String, descriptor: String) {
+                override fun visitFieldInsn(
+                    opcode: Int,
+                    owner: String,
+                    name: String,
+                    descriptor: String
+                ) {
                     if (opcode == Opcodes.GETFIELD) {
+                        println("skipping $owner/$name/$descriptor - opcode $opcode=='GET FIELD'")
                         fields[name] = null
                     }
                 }
@@ -74,8 +78,13 @@ class SekretClassBuilder(
                     descriptor: String,
                     isInterface: Boolean
                 ) {
-                    if (opcode == Opcodes.INVOKEVIRTUAL && owner == origin.classDescriptor() && name.startsWith("get")) {
-                        fields[name.substring(3).replaceFirstChar { it.lowercase() }] = null
+                    if (opcode == Opcodes.INVOKEVIRTUAL
+                        && owner == origin.classDescriptor()
+                        && name.startsWith("get")
+                    ) {
+                        val keyName = name.substring(3).replaceFirstChar { it.lowercase() }
+                        println("skipping $owner/$keyName/$descriptor - opcode $opcode=='INVOKE VIRTUAL'. interface:$isInterface")
+                        fields[keyName] = null
                     }
                 }
             }
@@ -102,23 +111,23 @@ class SekretClassBuilder(
         mv.visitLdcInsn("${thisName.split("/").last()}(")
         appendToStringBuilder(mv)
 
-        fields.onEachIndexed { index, entry ->
-            val name = entry.key
-            val fieldInfo = entry.value!!
-            val desc = fieldInfo.first
-            val needToHide = fieldInfo.second
-            val isNullable = fieldInfo.third
+        fields.onEachIndexed { index, (name, fieldInfo) ->
+
+            if (fieldInfo == null) {
+                println("WARNING $index/$name has no field info")
+                return@onEachIndexed
+            }
 
             mv.visitLdcInsn((if (index == 0) "" else ", ") + "$name=")
             appendToStringBuilder(mv)
 
-            if (needToHide) {
-                if (maskNulls && isNullable) {
+            if (fieldInfo.needToHide) {
+                if (maskNulls && fieldInfo.isNullable) {
                     val loadNullLabel = Label()
                     val appendStringLabel = Label()
 
                     mv.visitVarInsn(Opcodes.ALOAD, 0)
-                    mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, desc)
+                    mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, fieldInfo.desc)
                     mv.visitJumpInsn(Opcodes.IFNULL, loadNullLabel)
 
                     mv.visitLdcInsn(mask)
@@ -135,27 +144,28 @@ class SekretClassBuilder(
                 }
             } else {
                 mv.visitVarInsn(Opcodes.ALOAD, 0)
-                mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, desc)
+                mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, fieldInfo.desc)
 
                 when {
                     // primitives or descriptors supported by StringBuilder
-                    desc.length == 1 || STRING_BUILDER_SUPPORTED_DESCRIPTORS.contains(desc) -> {
-                        appendToStringBuilder(mv, desc)
+                    fieldInfo.desc.length == 1
+                        || STRING_BUILDER_SUPPORTED_DESCRIPTORS.contains(fieldInfo.desc) -> {
+                        appendToStringBuilder(mv, fieldInfo.desc)
                     }
                     // arrays
-                    desc[0] == '[' -> {
-                        val isPrimitiveArray = desc.length == 2
+                    fieldInfo.desc[0] == '['                                             -> {
+                        val isPrimitiveArray = fieldInfo.desc.length == 2
                         mv.visitMethodInsn(
                             Opcodes.INVOKESTATIC,
                             "java/util/Arrays",
                             "toString",
-                            "(${if (isPrimitiveArray) desc else "[Ljava/lang/Object;"})Ljava/lang/String;",
+                            "(${if (isPrimitiveArray) fieldInfo.desc else "[Ljava/lang/Object;"})Ljava/lang/String;",
                             false,
                         )
                         appendToStringBuilder(mv)
                     }
                     // others go as Object
-                    else -> {
+                    else                                                                 -> {
                         appendToStringBuilder(mv, "Ljava/lang/Object;")
                     }
                 }
