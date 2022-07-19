@@ -8,10 +8,8 @@ plugins {
 description = "Common configuration for publishing Maven artifacts"
 
 publishing {
-    val ossrhUsername =
-        project.findProperty("ossrhUsername") as? String ?: System.getenv("OSSRH_USERNAME")
-    val ossrhPassword =
-        project.findProperty("ossrhPassword") as? String ?: System.getenv("OSSRH_PASSWORD")
+    val ossrhUsername = project.findProperty("ossrhUsername") as? String ?: System.getenv("OSSRH_USERNAME")
+    val ossrhPassword = project.findProperty("ossrhPassword") as? String ?: System.getenv("OSSRH_PASSWORD")
 
     repositories {
         maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
