@@ -23,14 +23,14 @@ application {
 
 val kotlinPlugin = ":kotlin-plugin"
 
-tasks.withType<KotlinCompile> {
+tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs =
             listOf("-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin-$version.jar")
     }
 }
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     useJUnitPlatform {
         includeEngines("spek2")
     }
