@@ -10,7 +10,7 @@ plugins {
 }
 
 // set the versions of Gradle plugins that the subprojects will use here
-val kotlinPluginVersion: String = "1.6.21"
+val kotlinPluginVersion: String = "1.7.10"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinPluginVersion"))

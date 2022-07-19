@@ -14,8 +14,8 @@ description = "Kotlin compiler for Sekret library"
 dependencies {
     implementation(kotlin("compiler-embeddable"))
 
-    compileOnly("com.google.auto.service:auto-service:1.0-rc4")
-    kapt("com.google.auto.service:auto-service:1.0-rc4")
+    compileOnly("com.google.auto.service:auto-service:1.0.1")
+    kapt("com.google.auto.service:auto-service:1.0.1")
 }
 
 publishing {

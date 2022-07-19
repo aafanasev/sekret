@@ -10,10 +10,11 @@ dependencies {
     implementation(projects.annotation)
     implementation(projects.kotlinPlugin)
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:2.0.8")
-    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:2.0.8")
+    testImplementation(platform("org.junit:junit-bom:5.8.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+
+    testImplementation("org.spekframework.spek2:spek-dsl:2.0.18")
+    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:2.0.18")
     testRuntimeOnly(kotlin("reflect"))
 }
 
