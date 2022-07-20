@@ -12,14 +12,14 @@ object ValueClassSpec : Spek({
     describe("data class with value class properties") {
         val mask = "■■■"
 
-        it("should print properties that are value classes, and not annotated") {
+        it("should print non-annotated properties") {
             assertEquals(
                 "MyModel(id=ModelId(value=111), name=Name(value=name), description=Description(value=description))",
                 MyModel(modelId, name, description).toString()
             )
         }
 
-        it("should hide properties that are value classes, and are annotated") {
+        it("should hide annotated properties") {
             assertEquals(
                 "MyModelSecret(id=$mask, name=$mask, description=$mask)",
                 MyModelSecret(modelId, name, description).toString()
@@ -28,14 +28,14 @@ object ValueClassSpec : Spek({
 
         describe("that implement an interface") {
 
-            it("should print properties that are value classes, and not annotated") {
+            it("should print non-annotated properties") {
                 assertEquals(
                     "MySubModel(id=ModelId(value=111), name=Name(value=name), description=Description(value=description), extraField=extra-field)",
                     MySubModel(modelId, name, description, "extra-field").toString()
                 )
             }
 
-            it("should hide properties that are value classes, and are annotated") {
+            it("should hide annotated properties") {
                 assertEquals(
                     "MySubModelSecret(id=$mask, name=$mask, description=$mask, anotherExtraField=$mask)",
                     MySubModelSecret(modelId, name, description, "another-extra-field").toString()
