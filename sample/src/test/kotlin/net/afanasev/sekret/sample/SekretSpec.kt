@@ -41,15 +41,15 @@ object SekretSpec : Spek({
         it("should hide properties of a complex object") {
             assertEquals(
                 "Complex(" +
-                    "str=■■■, " +
-                    "int=■■■, " +
-                    "long=■■■, " +
-                    "float=■■■, " +
-                    "list=■■■, " +
-                    "array=■■■, " +
-                    "boolean=■■■, " +
-                    "admin=Admin(login=admin, password=■■■), " +
-                    "student=■■■" +
+                    "str=$mask, " +
+                    "int=$mask, " +
+                    "long=$mask, " +
+                    "float=$mask, " +
+                    "list=$mask, " +
+                    "array=$mask, " +
+                    "boolean=$mask, " +
+                    "admin=Admin(login=admin, password=$mask), " +
+                    "student=$mask" +
                     ")",
                 Complex(
                     str = "string",

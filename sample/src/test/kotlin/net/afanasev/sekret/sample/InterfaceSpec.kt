@@ -12,15 +12,15 @@ object InterfaceSpec : Spek({
         it("annotated properties should be hidden") {
             assertEquals(
                 "ComplexImpl(" +
-                    "str=■■■, " +
-                    "int=■■■, " +
-                    "long=■■■, " +
-                    "float=■■■, " +
-                    "list=■■■, " +
-                    "array=■■■, " +
-                    "boolean=■■■, " +
-                    "admin=Admin(login=admin, password=■■■), " +
-                    "student=■■■" +
+                    "str=$mask, " +
+                    "int=$mask, " +
+                    "long=$mask, " +
+                    "float=$mask, " +
+                    "list=$mask, " +
+                    "array=$mask, " +
+                    "boolean=$mask, " +
+                    "admin=Admin(login=admin, password=$mask), " +
+                    "student=$mask" +
                     ")",
                 ComplexImpl(
                     str = "string",
