@@ -33,6 +33,37 @@ object SekretSpec : Spek({
         it("should hide getters") {
             assertEquals("BaseImpl(str=$mask, id=$mask, arr=$mask, str2=$mask, str3=str3)", BaseImpl("str", 42, arrayOf("a", "r"), "str3", "str3").toString())
         }
+
+        it("should hide getters") {
+            assertEquals("BaseImpl(str=$mask, id=$mask, arr=$mask, str2=$mask, str3=str3)", BaseImpl("str", 42, arrayOf("a", "r"), "str3", "str3").toString())
+        }
+
+        it("should hide properties of a complex object") {
+            assertEquals(
+                "Complex(" +
+                    "str=■■■, " +
+                    "int=■■■, " +
+                    "long=■■■, " +
+                    "float=■■■, " +
+                    "list=■■■, " +
+                    "array=■■■, " +
+                    "boolean=■■■, " +
+                    "admin=Admin(login=admin, password=■■■), " +
+                    "student=■■■" +
+                    ")",
+                Complex(
+                    str = "string",
+                    int = 3,
+                    long = 4L,
+                    float = 2f,
+                    list = listOf(),
+                    array = arrayOf(),
+                    boolean = true,
+                    admin = Admin("admin", "pwd"),
+                    student = Student("student", "pwd"),
+                ).toString()
+            )
+        }
     }
 
 })
