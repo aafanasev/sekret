@@ -82,7 +82,7 @@ class SekretClassBuilder(
                         && owner == origin.classDescriptor()
                         && name.startsWith("get")
                     ) {
-                        val keyName = name.substring(3).replaceFirstChar { it.lowercase() }
+                        val keyName = name.substring(3).substringBefore("-").replaceFirstChar { it.lowercase() }
                         println("skipping $owner/$keyName/$descriptor - opcode $opcode=='INVOKE VIRTUAL'. interface:$isInterface")
                         fields[keyName] = null
                     }
@@ -112,11 +112,7 @@ class SekretClassBuilder(
         appendToStringBuilder(mv)
 
         fields.onEachIndexed { index, (name, fieldInfo) ->
-
-            if (fieldInfo == null) {
-                println("WARNING $index/$name has no field info")
-                return@onEachIndexed
-            }
+            checkNotNull(fieldInfo) { name }
 
             mv.visitLdcInsn((if (index == 0) "" else ", ") + "$name=")
             appendToStringBuilder(mv)
@@ -153,7 +149,7 @@ class SekretClassBuilder(
                         appendToStringBuilder(mv, fieldInfo.desc)
                     }
                     // arrays
-                    fieldInfo.desc[0] == '['                                             -> {
+                    fieldInfo.desc[0] == '[' -> {
                         val isPrimitiveArray = fieldInfo.desc.length == 2
                         mv.visitMethodInsn(
                             Opcodes.INVOKESTATIC,
@@ -165,7 +161,7 @@ class SekretClassBuilder(
                         appendToStringBuilder(mv)
                     }
                     // others go as Object
-                    else                                                                 -> {
+                    else -> {
                         appendToStringBuilder(mv, "Ljava/lang/Object;")
                     }
                 }

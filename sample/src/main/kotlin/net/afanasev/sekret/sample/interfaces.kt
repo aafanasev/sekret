@@ -35,18 +35,20 @@ interface ComplexInterface {
     val student: Student
 }
 
-fun main() {
-    println(
-        ComplexImpl(
-            str = "string",
-            int = 3,
-            long = 4L,
-            float = 2f,
-            list = listOf(),
-            array = arrayOf(),
-            boolean = true,
-            admin = Admin("admin", "pwd"),
-            student = Student("student", "pwd"),
+object Interface {
+    fun main() {
+        println(
+            ComplexImpl(
+                str = "string",
+                int = 3,
+                long = 4L,
+                float = 2f,
+                list = listOf(),
+                array = arrayOf(),
+                boolean = true,
+                admin = Admin("admin", "pwd"),
+                student = Student("student", "pwd"),
+            )
         )
-    )
+    }
 }

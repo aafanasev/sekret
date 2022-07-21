@@ -91,4 +91,8 @@ fun main() {
             student = Student("student", "pwd"),
         )
     )
+
+    Interface.main()
+    VC.main()
+
 }

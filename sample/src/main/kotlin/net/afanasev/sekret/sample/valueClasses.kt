@@ -5,8 +5,10 @@ import net.afanasev.sekret.Secret
 
 @JvmInline
 value class ModelId(val value: Long) : Comparable<Long> by value
+
 @JvmInline
 value class Name(val value: String) : CharSequence by value
+
 @JvmInline
 value class Description(val value: String)
 
@@ -47,20 +49,25 @@ interface MyModelInterface {
 }
 
 fun main() {
-    val modelId = ModelId(111)
-    val name = Name("name")
-    val description = Description("description")
 
-    println(modelId)
-    println(name)
-    println(description)
+}
+object VC {
+    fun main() {
+        val modelId = ModelId(111)
+        val name = Name("name")
+        val description = Description("description")
 
-    println(MyModel(modelId, name, description))
+        println(modelId)
+        println(name)
+        println(description)
 
-    println(MyModelSecret(modelId, name, description))
+        println(MyModel(modelId, name, description))
 
-    println(MySubModel(modelId, name, description, "extra-field"))
+        println(MyModelSecret(modelId, name, description))
 
-    println(MySubModelSecret(modelId, name, description, "another-extra-field"))
+        println(MySubModel(modelId, name, description, "extra-field"))
 
+        println(MySubModelSecret(modelId, name, description, "another-extra-field"))
+
+    }
 }

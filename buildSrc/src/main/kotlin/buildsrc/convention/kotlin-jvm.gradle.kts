@@ -6,9 +6,6 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of("8"))
-    }
 }
 
 java {
