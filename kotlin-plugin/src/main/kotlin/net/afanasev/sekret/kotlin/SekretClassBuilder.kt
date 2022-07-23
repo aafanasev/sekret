@@ -26,6 +26,8 @@ class SekretClassBuilder(
     private val fields = linkedMapOf<String, FieldInfo?>()
     private var generateToString = false
 
+    private var error = ""
+
     override fun getDelegate(): ClassBuilder = classBuilder
 
     override fun newField(
@@ -40,7 +42,11 @@ class SekretClassBuilder(
             (origin.descriptor as? PropertyDescriptor)?.let { descriptor ->
                 val hide = annotations.any { descriptor.annotations.hasAnnotation(it) }
                 if (fields.contains(name)) {
-                    fields[name] = FieldInfo(desc, hide, descriptor.type.isNullable())
+                    if (fields[name] == null) {
+                        fields[name] = FieldInfo(desc, hide, descriptor.type.isNullable(), null)
+                    } else {
+                        fields[name] = fields[name]!!.copy(desc = desc, needToHide = hide, isNullable = descriptor.type.isNullable())
+                    }
                 }
             }
         }
@@ -66,7 +72,6 @@ class SekretClassBuilder(
                     descriptor: String
                 ) {
                     if (opcode == Opcodes.GETFIELD) {
-                        println("skipping $owner/$name/$descriptor - opcode $opcode=='GET FIELD'")
                         fields[name] = null
                     }
                 }
@@ -83,8 +88,10 @@ class SekretClassBuilder(
                         && name.startsWith("get")
                     ) {
                         val keyName = name.substring(3).substringBefore("-").replaceFirstChar { it.lowercase() }
-                        println("skipping $owner/$keyName/$descriptor - opcode $opcode=='INVOKE VIRTUAL'. interface:$isInterface")
                         fields[keyName] = null
+                    } else if (opcode == Opcodes.INVOKESTATIC && name == TO_STRING_IMPL) {
+                        // lastly added field should be wrapped
+                        fields[fields.keys.last()] = FieldInfo("", false, false, owner)
                     }
                 }
             }
@@ -95,6 +102,9 @@ class SekretClassBuilder(
 
     override fun done() {
         if (generateToString) {
+            if (error.isNotEmpty()) {
+                throw java.lang.RuntimeException(error)
+            }
             generateToString()
         }
         super.done()
@@ -143,6 +153,16 @@ class SekretClassBuilder(
                 mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, fieldInfo.desc)
 
                 when {
+                    fieldInfo.wrapperClassName != null -> {
+                        mv.visitMethodInsn(
+                            Opcodes.INVOKESTATIC,
+                            fieldInfo.wrapperClassName,
+                            TO_STRING_IMPL,
+                            "(${fieldInfo.desc})Ljava/lang/String;",
+                            false,
+                        )
+                        appendToStringBuilder(mv, "Ljava/lang/Object;")
+                    }
                     // primitives or descriptors supported by StringBuilder
                     fieldInfo.desc.length == 1
                         || STRING_BUILDER_SUPPORTED_DESCRIPTORS.contains(fieldInfo.desc) -> {
@@ -198,6 +218,7 @@ class SekretClassBuilder(
 
     private companion object {
         const val STRING_BUILDER = "java/lang/StringBuilder"
+        const val TO_STRING_IMPL = "toString-impl"
         val STRING_BUILDER_SUPPORTED_DESCRIPTORS =
             setOf("Ljava/lang/String;", "Ljava/lang/StringBuffer;", "Ljava/lang/CharSequence;")
     }

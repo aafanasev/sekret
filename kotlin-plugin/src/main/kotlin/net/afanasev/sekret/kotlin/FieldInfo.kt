@@ -4,4 +4,5 @@ data class FieldInfo(
     val desc: String,
     val needToHide: Boolean,
     val isNullable: Boolean,
+    val wrapperClassName: String?,
 )
