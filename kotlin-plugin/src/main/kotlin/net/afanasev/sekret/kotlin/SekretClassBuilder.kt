@@ -91,7 +91,12 @@ class SekretClassBuilder(
                         fields[keyName] = null
                     } else if (opcode == Opcodes.INVOKESTATIC && name == TO_STRING_IMPL) {
                         // lastly added field should be wrapped
-                        fields[fields.keys.last()] = FieldInfo("", false, false, owner)
+                        fields[fields.keys.last()] = FieldInfo(
+                            desc = "",
+                            needToHide = false,
+                            isNullable = false,
+                            wrapperClassName = owner
+                        )
                     }
                 }
             }
