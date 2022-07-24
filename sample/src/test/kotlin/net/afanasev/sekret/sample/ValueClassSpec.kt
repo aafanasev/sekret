@@ -14,7 +14,7 @@ object ValueClassSpec : Spek({
 
         it("should print non-annotated properties") {
             assertEquals(
-                "MyModel(id=ModelId(value=111), name=Name(value=name), description=Description(value=description))",
+                "MyModel(id=ModelId(value=111), name=my name is name, description=Description(value=description))",
                 MyModel(modelId, name, description).toString()
             )
         }
@@ -30,7 +30,7 @@ object ValueClassSpec : Spek({
 
             it("should print non-annotated properties") {
                 assertEquals(
-                    "MySubModel(id=ModelId(value=111), name=Name(value=name), description=Description(value=description), extraField=extra-field)",
+                    "MySubModel(id=ModelId(value=111), name=my name is name, description=Description(value=description), extraField=extra-field)",
                     MySubModel(modelId, name, description, "extra-field").toString()
                 )
             }

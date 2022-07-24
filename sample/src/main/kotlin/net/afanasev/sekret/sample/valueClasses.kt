@@ -7,7 +7,9 @@ import net.afanasev.sekret.Secret
 value class ModelId(val value: Long) : Comparable<Long> by value
 
 @JvmInline
-value class Name(val value: String) : CharSequence by value
+value class Name(val value: String) {
+    override fun toString(): String = "my name is $value"
+}
 
 @JvmInline
 value class Description(val value: String)
