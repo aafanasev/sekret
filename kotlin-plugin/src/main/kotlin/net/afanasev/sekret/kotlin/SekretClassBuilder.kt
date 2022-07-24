@@ -26,8 +26,6 @@ class SekretClassBuilder(
     private val fields = linkedMapOf<String, FieldInfo?>()
     private var generateToString = false
 
-    private var error = ""
-
     override fun getDelegate(): ClassBuilder = classBuilder
 
     override fun newField(
@@ -107,9 +105,6 @@ class SekretClassBuilder(
 
     override fun done() {
         if (generateToString) {
-            if (error.isNotEmpty()) {
-                throw java.lang.RuntimeException(error)
-            }
             generateToString()
         }
         super.done()
