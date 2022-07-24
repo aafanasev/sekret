@@ -12,12 +12,16 @@ value class Name(val value: String) {
 }
 
 @JvmInline
+value class NestedName(val name: Name)
+
+@JvmInline
 value class Description(val value: String)
 
 // regular data class - expect Secket has no effect
 data class MyModel(
     val id: ModelId,
     val name: Name,
+    val nestedName: NestedName,
     val description: Description?,
 )
 
@@ -25,6 +29,7 @@ data class MyModel(
 data class MyModelSecret(
     @Secret val id: ModelId,
     @Secret val name: Name,
+    @Secret val nestedName: NestedName,
     @Secret val description: Description?,
 )
 
@@ -32,6 +37,7 @@ data class MyModelSecret(
 data class MySubModel(
     override val id: ModelId,
     override val name: Name,
+    override val nestedName: NestedName,
     override val description: Description?,
     val extraField: String,
 ) : MyModelInterface
@@ -40,6 +46,7 @@ data class MySubModel(
 data class MySubModelSecret(
     @Secret override val id: ModelId,
     @Secret override val name: Name,
+    @Secret override val nestedName: NestedName,
     @Secret override val description: Description?,
     @Secret val anotherExtraField: String,
 ) : MyModelInterface
@@ -47,29 +54,27 @@ data class MySubModelSecret(
 interface MyModelInterface {
     val id: ModelId
     val name: Name
+    val nestedName: NestedName
     val description: Description?
 }
 
-fun main() {
-
-}
 object VC {
     fun main() {
         val modelId = ModelId(111)
         val name = Name("name")
+        val nestedName = NestedName(Name("nested"))
         val description = Description("description")
 
         println(modelId)
         println(name)
         println(description)
 
-        println(MyModel(modelId, name, description))
+        println(MyModel(modelId, name, nestedName, description))
 
-        println(MyModelSecret(modelId, name, description))
+        println(MyModelSecret(modelId, name, nestedName, description))
 
-        println(MySubModel(modelId, name, description, "extra-field"))
+        println(MySubModel(modelId, name, nestedName, description, "extra-field"))
 
-        println(MySubModelSecret(modelId, name, description, "another-extra-field"))
-
+        println(MySubModelSecret(modelId, name, nestedName, description, "another-extra-field"))
     }
 }
