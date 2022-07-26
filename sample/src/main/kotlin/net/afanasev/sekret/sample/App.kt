@@ -65,6 +65,28 @@ data class Complex(
     var field2 = false
 }
 
+data class NamingTestImpl(
+    @Secret val UpperCaseName: String,
+    @Secret override val UpperCaseNameInterface: String,
+    @Secret val snake_case: String,
+    @Secret override val snake_caseInterface: String,
+    @Secret val justBoolean: Boolean,
+    @Secret override val justBooleanInterface: Boolean,
+    @Secret val hasBoolean: Boolean,
+    @Secret override val hasBooleanInterface: Boolean,
+    @Secret val isBoolean: Boolean,
+    @Secret override val isBooleanInterface: Boolean,
+    @Secret val booleanInterface: Boolean,
+) : NamingTestInterface
+
+interface NamingTestInterface {
+    val UpperCaseNameInterface: String
+    val snake_caseInterface: String
+    val justBooleanInterface: Boolean
+    val hasBooleanInterface: Boolean
+    val isBooleanInterface: Boolean
+}
+
 fun main() {
     val student = Student("John", "Snow")
 
@@ -95,4 +117,18 @@ fun main() {
     Interface.main()
     VC.main()
 
+    println(
+        NamingTestImpl(
+            "uppercase",
+            "uppercase2",
+            "snakecase",
+            "snakecase2",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+        )
+    )
 }

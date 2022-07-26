@@ -23,7 +23,8 @@ class SekretClassBuilder(
 ) : DelegatingClassBuilder() {
 
     private val annotations: List<FqName> = annotations.map { FqName(it) }
-    private val fields = linkedMapOf<String, FieldInfo?>()
+    private val fields = linkedMapOf<String /* field name in lowercase */, FieldInfo?>()
+    private val inlinedFields = linkedMapOf<String, String>()
     private var generateToString = false
 
     override fun getDelegate(): ClassBuilder = classBuilder
@@ -38,13 +39,10 @@ class SekretClassBuilder(
     ): FieldVisitor {
         if (generateToString) {
             (origin.descriptor as? PropertyDescriptor)?.let { descriptor ->
-                val hide = annotations.any { descriptor.annotations.hasAnnotation(it) }
-                if (fields.contains(name)) {
-                    if (fields[name] == null) {
-                        fields[name] = FieldInfo(desc, hide, descriptor.type.isNullable(), null)
-                    } else {
-                        fields[name] = fields[name]!!.copy(desc = desc, needToHide = hide, isNullable = descriptor.type.isNullable())
-                    }
+                val fieldKey = name.lowercase()
+                if (fields.contains(fieldKey)) {
+                    val isHidden = annotations.any { descriptor.annotations.hasAnnotation(it) }
+                    fields[fieldKey] = FieldInfo(name, desc, isHidden, descriptor.type.isNullable())
                 }
             }
         }
@@ -70,7 +68,7 @@ class SekretClassBuilder(
                     descriptor: String
                 ) {
                     if (opcode == Opcodes.GETFIELD) {
-                        fields[name] = null
+                        fields[name.lowercase()] = null
                     }
                 }
 
@@ -81,22 +79,31 @@ class SekretClassBuilder(
                     descriptor: String,
                     isInterface: Boolean
                 ) {
-                    if (opcode == Opcodes.INVOKEVIRTUAL
-                        && owner == origin.classDescriptor()
-                        && name.startsWith("get")
-                    ) {
-                        val keyName = name.substring(3).substringBefore("-").replaceFirstChar { it.lowercase() }
-                        fields[keyName] = null
-                    } else if (opcode == Opcodes.INVOKESTATIC && name == TO_STRING_IMPL) {
-                        // lastly added field should be wrapped
-                        fields[fields.keys.last()] = FieldInfo(
-                            desc = "",
-                            needToHide = false,
-                            isNullable = false,
-                            wrapperClassName = owner
-                        )
+                    when {
+                        isLocalGetter(opcode, owner, name) -> {
+                            val fieldKey = name
+                                .substring(if (name[0] == 'g') 3 else 2) // skip "get" or "is"
+                                .substringBefore('-') // remove mangling
+                                .lowercase()
+                            fields[fieldKey] = null
+                        }
+                        isToStringOfInlinedClass(opcode, owner, name) -> {
+                            val lastlyAddedFieldKey = fields.keys.last()
+                            inlinedFields[lastlyAddedFieldKey] = owner
+                        }
                     }
                 }
+
+                private fun isLocalGetter(opcode: Int, className: String, methodName: String) =
+                    opcode == Opcodes.INVOKEVIRTUAL
+                        && className == origin.classDescriptor()
+                        && (methodName.startsWith("get") || methodName.startsWith("is"))
+
+                private fun isToStringOfInlinedClass(opcode: Int, className: String, methodName: String) =
+                    opcode == Opcodes.INVOKESTATIC
+                        && className != origin.classDescriptor()
+                        && methodName == INLINED_TO_STRING_NAME
+
             }
         } else {
             super.newMethod(origin, access, name, desc, signature, exceptions)
@@ -121,19 +128,19 @@ class SekretClassBuilder(
         mv.visitLdcInsn("${thisName.split("/").last()}(")
         appendToStringBuilder(mv)
 
-        fields.onEachIndexed { index, (name, fieldInfo) ->
-            checkNotNull(fieldInfo) { name }
+        fields.onEachIndexed { index, (fieldKey, fieldInfo) ->
+            checkNotNull(fieldInfo) { "Missing field info: $fieldKey" }
 
-            mv.visitLdcInsn((if (index == 0) "" else ", ") + "$name=")
+            mv.visitLdcInsn((if (index == 0) "" else ", ") + fieldInfo.name + '=')
             appendToStringBuilder(mv)
 
-            if (fieldInfo.needToHide) {
+            if (fieldInfo.isHidden) {
                 if (maskNulls && fieldInfo.isNullable) {
                     val loadNullLabel = Label()
                     val appendStringLabel = Label()
 
                     mv.visitVarInsn(Opcodes.ALOAD, 0)
-                    mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, fieldInfo.desc)
+                    mv.visitFieldInsn(Opcodes.GETFIELD, thisName, fieldInfo.name, fieldInfo.desc)
                     mv.visitJumpInsn(Opcodes.IFNULL, loadNullLabel)
 
                     mv.visitLdcInsn(mask)
@@ -150,14 +157,14 @@ class SekretClassBuilder(
                 }
             } else {
                 mv.visitVarInsn(Opcodes.ALOAD, 0)
-                mv.visitFieldInsn(Opcodes.GETFIELD, thisName, name, fieldInfo.desc)
+                mv.visitFieldInsn(Opcodes.GETFIELD, thisName, fieldInfo.name, fieldInfo.desc)
 
                 when {
-                    fieldInfo.wrapperClassName != null -> {
+                    inlinedFields.contains(fieldKey) -> {
                         mv.visitMethodInsn(
                             Opcodes.INVOKESTATIC,
-                            fieldInfo.wrapperClassName,
-                            TO_STRING_IMPL,
+                            inlinedFields[fieldKey],
+                            INLINED_TO_STRING_NAME,
                             "(${fieldInfo.desc})Ljava/lang/String;",
                             false,
                         )
@@ -217,8 +224,8 @@ class SekretClassBuilder(
         descriptor?.containingDeclaration?.fqNameSafe?.asString()?.replace('.', '/')
 
     private companion object {
+        const val INLINED_TO_STRING_NAME = "toString-impl"
         const val STRING_BUILDER = "java/lang/StringBuilder"
-        const val TO_STRING_IMPL = "toString-impl"
         val STRING_BUILDER_SUPPORTED_DESCRIPTORS =
             setOf("Ljava/lang/String;", "Ljava/lang/StringBuffer;", "Ljava/lang/CharSequence;")
     }

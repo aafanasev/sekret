@@ -23,7 +23,6 @@ data class ComplexImpl(
 }
 
 interface ComplexInterface {
-
     val str: String
     val int: Int
     val long: Long
