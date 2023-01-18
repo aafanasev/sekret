@@ -8,8 +8,10 @@ import net.afanasev.sekret.kotlin.SekretOptions.KEY_MASK_NULLS
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
+@OptIn(ExperimentalCompilerApi::class)
 @AutoService(ComponentRegistrar::class)
 class SekretComponentRegistrar : ComponentRegistrar {
 
