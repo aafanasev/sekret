@@ -103,11 +103,11 @@ class SekretClassBuilder(
         }
     }
 
-    override fun done() {
+    override fun done(generateSmapCopyToAnnotation: Boolean) {
         if (generateToString) {
             generateToString()
         }
-        super.done()
+        super.done(generateSmapCopyToAnnotation)
     }
 
     private fun generateToString() {

@@ -8,8 +8,10 @@ import net.afanasev.sekret.kotlin.SekretOptions.KEY_MASK_NULLS
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
+@OptIn(ExperimentalCompilerApi::class)
 @AutoService(CommandLineProcessor::class)
 class SekretCommandLineProcessor : CommandLineProcessor {
 
@@ -29,7 +31,7 @@ class SekretCommandLineProcessor : CommandLineProcessor {
             required = false
         ),
         CliOption(
-            SekretOptions.KEY_MASK_NULLS.toString(),
+            KEY_MASK_NULLS.toString(),
             "<true|false>",
             "Apply mask to null values or not",
             required = false
