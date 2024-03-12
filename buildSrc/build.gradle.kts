@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `kotlin-dsl`
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.9.23"
     // Gradle uses an embedded Kotlin with version 1.4
     // https://docs.gradle.org/current/userguide/compatibility.html#kotlin
 }
