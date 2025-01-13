@@ -13,9 +13,17 @@ description = "Kotlin compiler for Sekret library"
 
 dependencies {
     implementation(kotlin("compiler-embeddable"))
+    implementation(projects.annotation)
 
     compileOnly("com.google.auto.service:auto-service:1.0.1")
     kapt("com.google.auto.service:auto-service:1.0.1")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.5.0")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 publishing {
