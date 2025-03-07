@@ -60,9 +60,42 @@ sekret {
     enabled = true
 
     // "net.afanasev.sekret.Secret" by default
-    annotations = ["com.sample.YourAnnotation"] 
+     annotations = ["com.sample.YourAnnotation"] 
 }
 ```
+### Custom annotations:
+#### PayAttention that your custom annotation should have proper retention:
+
+```kotlin
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.SOURCE)
+annotation class CustomAnnotation()
+```
+#### Also, there is possibility to customize replacement via regular expression replacement
+To use it 
+* you should crate annotation with exactly two  fields
+`search` and
+`replacement`
+
+```kotlin
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.SOURCE)
+annotation class AnnotationWithReplacement(val search: String, val replacement: String)
+```
+* Annotate field 
+```kotlin
+data class Phone(
+    @AnnotationWithReplacement("([0-9]{3})(.*)([0-9]{2})","$1****$3")
+    val number:String
+)
+```
+----
+Behaviour: 
+- if `fieldValue ` matches the `search` regular expression
+  - then `fieldValue` will be replaced by `replacement` expression
+- else 
+  - `fieldValue` will be replaced by default `mask`
+
 
 ### Kotlin CLI
 

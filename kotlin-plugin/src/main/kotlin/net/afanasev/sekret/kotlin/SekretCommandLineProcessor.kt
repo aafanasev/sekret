@@ -10,16 +10,18 @@ import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
 
+const val PLUGIN_ID = "sekret"
+
 @OptIn(ExperimentalCompilerApi::class)
 @AutoService(CommandLineProcessor::class)
 class SekretCommandLineProcessor : CommandLineProcessor {
 
-    override val pluginId: String = "sekret"
+    override val pluginId: String = PLUGIN_ID
 
     override val pluginOptions: Collection<AbstractCliOption> = listOf(
         CliOption(
             KEY_MASK.toString(),
-            "<fqname>",
+            "Some value which will be used for masking ",
             "Mask, by default it's three squares",
             required = false
         ),
