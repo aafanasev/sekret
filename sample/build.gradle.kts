@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.CompilerPluginConfig
+import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -27,7 +29,14 @@ val kotlinPlugin = ":kotlin-plugin"
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs =
-            listOf("-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin-$version.jar")
+            listOf(
+                "-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin-$version.jar",
+
+            )
+        pluginOptions.add(CompilerPluginConfig().apply {
+            addPluginArgument("sekret", SubpluginOption("annotations","net.afanasev.sekret.sample.AnnotationWithReplacement"))
+            addPluginArgument("sekret", SubpluginOption("annotations","net.afanasev.sekret.Secret"))
+        })
     }
 }
 
