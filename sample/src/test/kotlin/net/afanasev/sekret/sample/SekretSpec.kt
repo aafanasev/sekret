@@ -50,7 +50,7 @@ object SekretSpec : Spek({
                     "boolean=$mask, " +
                     "admin=Admin(login=admin, password=$mask), " +
                     "student=$mask, " +
-                    "phone=Phone(number=123****45)"+
+                    "phone=Phone(number=123****45, additional=three digits)"+
                     ")",
                 Complex(
                     str = "string",
@@ -62,7 +62,7 @@ object SekretSpec : Spek({
                     boolean = true,
                     admin = Admin("admin", "pwd"),
                     student = Student("student", "pwd"),
-                    phone  = Phone("123888888845"),
+                    phone  = Phone("123888888845", "123"),
                 ).toString()
             )
         }

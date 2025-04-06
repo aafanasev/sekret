@@ -9,10 +9,10 @@ object ReplaceByRegexpSpec : Spek({
     describe("Plugin") {
         val mask = "■■■"
         it("should hide properties with annotation even if regexp not matched") {
-            assertEquals("Phone(number=$mask)", Phone("root").toString())
+            assertEquals("Phone(number=$mask, additional=$mask)", Phone("root", "1234").toString())
         }
-        it("should replace properties with annotation ") {
-            assertEquals("Phone(number=123****45)", Phone("12300000045").toString())
+        it("should replace properties with annotation") {
+            assertEquals("Phone(number=123****45, additional=three digits)", Phone("12300000045", "123").toString())
         }
     }
 
