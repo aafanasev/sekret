@@ -5,15 +5,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.getValueArgument
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
-import org.jetbrains.kotlin.ir.builders.irBlockBody
-import org.jetbrains.kotlin.ir.builders.irCall
-import org.jetbrains.kotlin.ir.builders.irConcat
-import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.builders.irGetField
-import org.jetbrains.kotlin.ir.builders.irIfThenElse
-import org.jetbrains.kotlin.ir.builders.irReturn
-import org.jetbrains.kotlin.ir.builders.irString
+import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrProperty
@@ -25,11 +17,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
 import org.jetbrains.kotlin.ir.interpreter.getAnnotation
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isArray
-import org.jetbrains.kotlin.ir.util.constructors
-import org.jetbrains.kotlin.ir.util.functions
-import org.jetbrains.kotlin.ir.util.hasAnnotation
-import org.jetbrains.kotlin.ir.util.isPrimitiveArray
-import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.CallableId
@@ -52,16 +40,18 @@ class SekretGenerationExtension(
         private val annotations: Set<FqName>,
         private val mask: String,
     ) : IrElementTransformerVoid() {
-        val regexReplaceFunction = pluginContext.referenceFunctions(CallableId(ClassId.fromString("kotlin.text.Regex"), Name.identifier("replace")))
+
+        val regexClassId = ClassId.fromString(Regex::class.qualifiedName!!)
+        val regexConstructor = pluginContext.referenceConstructors(regexClassId)
+            .firstOrNull { it.owner.valueParameters.size == 1 }
+        val regexMatchesFunction = pluginContext.referenceFunctions(CallableId(regexClassId, Name.identifier("matches")))
+            .firstOrNull { it.owner.valueParameters.size == 1 }
+        val regexReplaceFunction = pluginContext.referenceFunctions(CallableId(regexClassId, Name.identifier("replace")))
             .firstOrNull {
                 it.owner.valueParameters.size == 2
-                    && it.owner.valueParameters.first().type == pluginContext.irBuiltIns.charSequenceClass.defaultType
-                    && it.owner.valueParameters.get(1).type == pluginContext.irBuiltIns.stringType
+                    && it.owner.valueParameters[0].type == pluginContext.irBuiltIns.charSequenceClass.defaultType
+                    && it.owner.valueParameters[1].type == pluginContext.irBuiltIns.stringType
             }
-        val regexpConstructor = pluginContext.referenceConstructors(ClassId.fromString(Regex::class.qualifiedName!!))
-            .firstOrNull { it.owner.valueParameters.size == 1 }
-        val regexMatchesFunction = pluginContext.referenceFunctions(CallableId(ClassId.fromString("kotlin.text.Regex"), Name.identifier("matches")))
-            .first { it.owner.valueParameters.size == 1 }
 
         override fun visitClass(declaration: IrClass): IrStatement {
             if (declaration.isData) {
@@ -72,15 +62,6 @@ class SekretGenerationExtension(
             }
 
             return super.visitClass(declaration)
-        }
-
-        private fun findReplacement(annotation: IrConstructorCall): Replacement? {
-            if (annotation.valueArgumentsCount < 2) {
-                return null
-            }
-            val rex = (annotation.getValueArgument(Name.identifier("search")) as? IrConst<String>)?.value ?: return null
-            val replacement = (annotation.getValueArgument(Name.identifier("replacement")) as? IrConst<String>)?.value ?: return null
-            return Replacement(rex, replacement)
         }
 
         private fun modifyToStringFunction(toStringFunction: IrSimpleFunction, irClass: IrClass) {
@@ -108,7 +89,7 @@ class SekretGenerationExtension(
                             val annotation = getSecretAnnotation(property)
                             if (annotation != null) {
                                 val replacement = findReplacement(annotation)
-                                if (replacement != null && regexReplaceFunction != null && regexpConstructor != null) {
+                                if (replacement != null) {
                                     replaceByRegexp(replacement, toStringFunction, property, this)
                                 } else {
                                     addArgument(irString(mask))
@@ -136,36 +117,60 @@ class SekretGenerationExtension(
             }
         }
 
+        private fun findReplacement(annotation: IrConstructorCall): Replacement? {
+            if (regexConstructor == null
+                || regexMatchesFunction == null
+                || regexReplaceFunction == null
+            ) {
+                // did not "load" kotlin.text.Regex class and its functions
+                return null
+            }
+
+            if (annotation.valueArgumentsCount != 2) {
+                // The replacement annotation must have 2 arguments
+                return null
+            }
+
+            val searchRegex = getValueArgument(annotation, "search")?.value
+            val replacement = getValueArgument(annotation, "replacement")?.value
+            if (searchRegex == null || replacement == null) {
+                return null
+            }
+
+            return Replacement(searchRegex, replacement)
+        }
+
+        private fun getValueArgument(annotation: IrConstructorCall, name: String): IrConst<String>? {
+            @Suppress("UNCHECKED_CAST")
+            return annotation.getValueArgument(Name.identifier(name)) as? IrConst<String>
+        }
+
         private fun IrBlockBodyBuilder.replaceByRegexp(
             replacement: Replacement,
             toStringFunction: IrSimpleFunction,
             property: IrProperty,
             irStringConcatenationImpl: IrStringConcatenationImpl
         ) {
-            checkNotNull(regexpConstructor)
+            checkNotNull(regexConstructor)
+            checkNotNull(regexMatchesFunction)
             checkNotNull(regexReplaceFunction)
-            /**
-             * val regexp = Regexp("myRegexp")
-             */
-            val regexInstance = irCall(regexpConstructor).apply {
+
+            // val regexp = Regexp("myRegexp")
+            val regexInstance = irCall(regexConstructor).apply {
                 putValueArgument(0, irString(replacement.searchRegexp))
             }
 
-            /**
-             *  regexp.matches(annotatedProperty)
-             */
+            // regexp.matches(annotatedProperty)
             val matchesCall = irCall(regexMatchesFunction).apply {
                 dispatchReceiver = regexInstance
                 putValueArgument(0, irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!))
             }
 
-            /**
-             * regexp.replace(annotatedProperty,replacement)
-             */
+            // regexp.replace(annotatedProperty, replacement)
             val replaceCall = irCall(regexReplaceFunction).apply {
                 dispatchReceiver = regexInstance
-                putValueArgument(0, irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)) // Передаем замену
-                putValueArgument(1, irString(replacement.replacementString)) // Передаем замену
+                putValueArgument(0, irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!))
+                putValueArgument(1, irString(replacement.replacementString))
             }
 
             /**
@@ -201,4 +206,7 @@ class SekretGenerationExtension(
     }
 }
 
-data class Replacement(val searchRegexp: String, val replacementString: String)
+internal data class Replacement(
+    val searchRegexp: String,
+    val replacementString: String,
+)
