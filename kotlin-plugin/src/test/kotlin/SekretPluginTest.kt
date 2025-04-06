@@ -23,7 +23,7 @@ class SekretPluginTest {
                 import net.afanasev.sekret.Secret
                 import test.MyAnnotation
                 data class DataClass(
-                    @test.MyAnnotation("wow","wow") val id: Int,
+                    @test.MyAnnotation("search", "replacement") val id: Int,
                     @Secret val nameAnnotated: String,
                     var publicVariable: String?,
                     private var privateVariable: String?,
@@ -43,11 +43,10 @@ class SekretPluginTest {
             inheritClassPath = true
             messageOutputStream = System.out
             pluginOptions = listOf(
-                PluginOption(PLUGIN_ID,SekretOptions.KEY_ANNOTATIONS.toString(),MyAnnotation::class.qualifiedName!!),
-                PluginOption(PLUGIN_ID,SekretOptions.KEY_ANNOTATIONS.toString(),Secret::class.qualifiedName!!),
+                PluginOption(PLUGIN_ID, SekretOptions.KEY_ANNOTATIONS.toString(), MyAnnotation::class.qualifiedName!!),
+                PluginOption(PLUGIN_ID, SekretOptions.KEY_ANNOTATIONS.toString(), Secret::class.qualifiedName!!),
             )
         }.compile()
-
 
         assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
     }

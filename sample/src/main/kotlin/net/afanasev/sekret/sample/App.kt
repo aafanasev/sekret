@@ -1,6 +1,7 @@
 package net.afanasev.sekret.sample
 
 import net.afanasev.sekret.Secret
+
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.SOURCE)
 annotation class AnnotationWithReplacement(val search: String, val replacement: String)
@@ -47,10 +48,15 @@ data class BaseImpl(
     @Secret val str2: String,
     val str3: String
 ) : Base(str, id, arr, str3)
+
 data class Phone(
-    @AnnotationWithReplacement("([0-9]{3})(.*)([0-9]{2})","$1****$3")
-    val number:String
+    @AnnotationWithReplacement("([0-9]{3})(.*)([0-9]{2})", "$1****$3")
+    val number: String,
+
+    @AnnotationWithReplacement("\\d{3}", "three digits")
+    val additional: String,
 )
+
 @Suppress("ArrayInDataClass")
 data class Complex(
     @Secret val str: String,
@@ -73,13 +79,12 @@ data class Complex(
 }
 
 
-
 fun main() {
     val student = Student("John", "Snow")
 
     println(User("John", "Snow", student))
     println(Admin("John", "Snow"))
-    println(Phone("1238767676767645"))
+    println(Phone("1238767676767645", "123"))
     println(student)
 
     println(DifferentTypes(1, "hello", true))
@@ -99,7 +104,7 @@ fun main() {
             boolean = true,
             admin = Admin("admin", "pwd"),
             student = Student("student", "pwd"),
-            phone = Phone("123000000045"),
+            phone = Phone("123000000045", "1234"),
         )
     )
 
