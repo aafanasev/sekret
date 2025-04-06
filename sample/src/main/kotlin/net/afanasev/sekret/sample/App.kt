@@ -54,7 +54,7 @@ data class Phone(
     val number: String,
 
     @AnnotationWithReplacement("\\d{3}", "three digits")
-    val additional: String,
+    val additional: String? = null,
 )
 
 @Suppress("ArrayInDataClass")
