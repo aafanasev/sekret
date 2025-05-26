@@ -28,6 +28,11 @@ data class DifferentTypes(
     @Secret val boolean: Boolean
 )
 
+data class NoSekret(val string: String){
+    override fun toString(): String {
+        return "Some overriden string: $string"
+    }
+}
 @Suppress("ArrayInDataClass")
 data class Arrays(
     @Secret val ints: IntArray,
@@ -51,7 +56,7 @@ data class BaseImpl(
 
 data class Phone(
     @AnnotationWithReplacement("([0-9]{3})(.*)([0-9]{2})", "$1****$3")
-    val number: String,
+    val number: String?,
 
     @AnnotationWithReplacement("\\d{3}", "three digits")
     val additional: String,
