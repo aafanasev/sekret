@@ -14,6 +14,10 @@ object ReplaceByRegexpSpec : Spek({
         it("should replace properties with annotation") {
             assertEquals("Phone(number=123****45, additional=three digits)", Phone("12300000045", "123").toString())
         }
+        it("should not fail if field value is null") {
+            assertEquals("Phone(number=null, additional=three digits)", Phone(null, "123").toString())
+            println(Phone(null, "123").toString())
+        }
     }
 
 })
