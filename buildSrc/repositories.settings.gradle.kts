@@ -4,15 +4,12 @@
 dependencyResolutionManagement {
 
     repositories {
-        mavenLocal()
         mavenCentral()
-//        gradlePluginPortal()
+        gradlePluginPortal()
     }
 
     pluginManagement {
         repositories {
-            mavenLocal()
-
             gradlePluginPortal()
             mavenCentral()
         }
