@@ -39,7 +39,6 @@ class SekretGenerationExtension(
         private val annotations: Set<FqName>,
         private val mask: String,
     ) : IrElementTransformerVoid() {
-
         val regexClassId = ClassId.fromString(Regex::class.qualifiedName!!)
         val regexConstructor = pluginContext.referenceConstructors(regexClassId)
             .firstOrNull { it.owner.valueParameters.size == 1 }
@@ -53,7 +52,7 @@ class SekretGenerationExtension(
             }
 
         override fun visitClass(declaration: IrClass): IrStatement {
-            if (declaration.isData) {
+            if (declaration.isData && hasAnySecretAnnotation(declaration)) {
                 val toStringFunction = declaration.functions.find { it.name.asString() == "toString" }
                 if (toStringFunction != null) {
                     modifyToStringFunction(toStringFunction, declaration)
@@ -61,6 +60,14 @@ class SekretGenerationExtension(
             }
 
             return super.visitClass(declaration)
+        }
+
+        private fun hasAnySecretAnnotation(kclass: IrClass): Boolean {
+            return annotations.any { annotation ->
+                kclass.properties.any { property ->
+                    property.hasAnnotation(annotation) || property.backingField?.hasAnnotation(annotation) ?: false
+                }
+            }
         }
 
         private fun modifyToStringFunction(toStringFunction: IrSimpleFunction, irClass: IrClass) {
@@ -180,14 +187,21 @@ class SekretGenerationExtension(
              *   ***
              * }
              */
-            val resultExpression = irIfThenElse(
+
+            val regexpExpression = irIfThenElse(
                 context.irBuiltIns.stringType,
                 matchesCall,
                 replaceCall,
                 irString(mask)
             )
+            val nonNullExpression = irIfThenElse(
+                context.irBuiltIns.stringType,
+                irEqualsNull(irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)),
+                irString("null"),
+                regexpExpression
+            )
 
-            irStringConcatenationImpl.addArgument(resultExpression)
+            irStringConcatenationImpl.addArgument(nonNullExpression)
         }
 
         private fun getSecretAnnotation(property: IrProperty) = annotations.firstNotNullOfOrNull {
