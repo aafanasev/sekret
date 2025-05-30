@@ -9,8 +9,8 @@ kotlin {
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_17
-    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_18
+    sourceCompatibility = JavaVersion.VERSION_18
     withSourcesJar()
     withJavadocJar()
 }
