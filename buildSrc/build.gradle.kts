@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     `kotlin-dsl`
     kotlin("jvm") version "1.9.25"
@@ -15,14 +13,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinPluginVersion")
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-}
-
 kotlin {
-    kotlinDslPluginOptions {
-        jvmTarget.set("17")
-    }
+    jvmToolchain(17)
 }

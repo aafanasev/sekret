@@ -6,11 +6,10 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(17)
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_18
-    sourceCompatibility = JavaVersion.VERSION_18
     withSourcesJar()
     withJavadocJar()
 }
