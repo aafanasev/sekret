@@ -40,6 +40,7 @@ class SekretGradlePlugin @Inject internal constructor(
 
     override fun getCompilerPluginId() = "sekret"
 
-    override fun getPluginArtifact() = SubpluginArtifact("net.afanasev", "sekret-kotlin-plugin", "1.0.0")
-
+    override fun getPluginArtifact() = SubpluginArtifact("net.afanasev", "sekret-kotlin-plugin",
+        SekretGradlePlugin::class.java.`package`.implementationVersion ?: "1.0.0"
+    )
 }

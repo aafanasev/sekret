@@ -3,6 +3,8 @@ package net.afanasev.sekret.kotlin
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -14,6 +16,7 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.addArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
 import org.jetbrains.kotlin.ir.interpreter.getAnnotation
+import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isArray
 import org.jetbrains.kotlin.ir.util.*
@@ -28,17 +31,20 @@ import org.jetbrains.kotlin.name.Name
 class SekretGenerationExtension(
     private val annotations: Set<FqName>,
     private val mask: String,
+    private val messageCollector: MessageCollector,
 ) : IrGenerationExtension {
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
-        moduleFragment.transformChildrenVoid(ToStringTransformer(pluginContext, annotations, mask))
+        moduleFragment.transformChildrenVoid(ToStringTransformer(pluginContext, annotations, mask, messageCollector))
     }
 
     private class ToStringTransformer(
         private val pluginContext: IrPluginContext,
         private val annotations: Set<FqName>,
         private val mask: String,
+        val messageCollector: MessageCollector,
     ) : IrElementTransformerVoid() {
+        val usedGroupRegex = "(\\$(\\d+))".toRegex()
         val regexClassId = ClassId.fromString(Regex::class.qualifiedName!!)
         val regexConstructor = pluginContext.referenceConstructors(regexClassId)
             .firstOrNull { it.owner.valueParameters.size == 1 }
@@ -50,6 +56,24 @@ class SekretGenerationExtension(
                     && it.owner.valueParameters[0].type == pluginContext.irBuiltIns.charSequenceClass.defaultType
                     && it.owner.valueParameters[1].type == pluginContext.irBuiltIns.stringType
             }
+
+        init {
+            if(regexConstructor==null){
+                messageCollector.report(
+                    CompilerMessageSeverity.WARNING,
+                    "Replace functionality is DISABLED : Unable to find  constructor having exactly 1 argument ${regexClassId.asFqNameString()}")
+            }
+            if(regexMatchesFunction==null){
+                messageCollector.report(
+                    CompilerMessageSeverity.WARNING,
+                    "Replace functionality is DISABLED : Unable to find 'Regexp.matches' ")
+            }
+            if(regexReplaceFunction==null){
+                messageCollector.report(
+                    CompilerMessageSeverity.WARNING,
+                    "Replace functionality is DISABLED : Unable to find 'Regexp.replace' ")
+            }
+        }
 
         override fun visitClass(declaration: IrClass): IrStatement {
             if (declaration.isData && hasAnySecretAnnotation(declaration)) {
@@ -94,7 +118,7 @@ class SekretGenerationExtension(
                             addArgument(irString(property.name.asString() + "="))
                             val annotation = getSecretAnnotation(property)
                             if (annotation != null) {
-                                val replacement = findReplacement(annotation)
+                                val replacement = findReplacement(annotation, irClass, property)
                                 if (replacement != null) {
                                     replaceByRegexp(replacement, toStringFunction, property, this)
                                 } else {
@@ -123,7 +147,11 @@ class SekretGenerationExtension(
             }
         }
 
-        private fun findReplacement(annotation: IrConstructorCall): Replacement? {
+        private fun findReplacement(
+            annotation: IrConstructorCall,
+            classContainedProperty: IrClass,
+            annotatedProperty: IrProperty
+        ): Replacement? {
             if (regexConstructor == null
                 || regexMatchesFunction == null
                 || regexReplaceFunction == null
@@ -133,16 +161,49 @@ class SekretGenerationExtension(
             }
 
             if (annotation.valueArgumentsCount != 2) {
-                // The replacement annotation must have 2 arguments
                 return null
             }
 
             val searchRegex = getValueArgument(annotation, "search")?.value
             val replacement = getValueArgument(annotation, "replacement")?.value
             if (searchRegex == null || replacement == null) {
+                messageCollector.report(
+                    CompilerMessageSeverity.WARNING,
+                    "Unable to apply ${annotation.type.classFqName} to ${classContainedProperty.name}.${annotatedProperty.name}." +
+                        "Annotation must have search and replacement attributes." +
+                        " Some of them is missing. search =  $searchRegex, replacement = $replacement  "
+                )
+                return null
+            }
+            val toRegex = searchRegex.toRegex()
+            val availableRegexpGroups = (1..toRegex.toPattern().matcher("").groupCount()).toSet()
+            val referencedRegexpGroups = usedGroupRegex
+                .findAll(replacement)
+                .map { it.groupValues[2] }
+                .mapNotNull { it.toIntOrNull() }
+                .toSet()
+            // in  case @SomeAnnotation(search="No groups search",replacement="$0")
+            if (referencedRegexpGroups.contains(0)) {
+                messageCollector.report(
+                    CompilerMessageSeverity.WARNING,
+                    "Unable to apply ${annotation.type.classFqName} to ${classContainedProperty.name}.${annotatedProperty.name}." +
+                        "Replacement [${replacement}] referenced to $0  which represents original unmasked value. For security reasons " +
+                        "value  will be replaced by default mask "
+                )
                 return null
             }
 
+            val unknownGroups = referencedRegexpGroups - availableRegexpGroups
+            // in  case @SomeAnnotation(search="No groups search",replacement="$1-***-$2")
+            if (unknownGroups.isNotEmpty()) {
+                messageCollector.report(
+                    CompilerMessageSeverity.WARNING,
+                    "Unable to apply ${annotation.type.classFqName} to ${classContainedProperty.name}.${annotatedProperty.name}." +
+                        "Replacement [${replacement}] referenced to groups (${unknownGroups}) that does not exists  in search [${searchRegex}]. " +
+                        "Value  will be replaced by default mask "
+                )
+                return null
+            }
             return Replacement(searchRegex, replacement)
         }
 

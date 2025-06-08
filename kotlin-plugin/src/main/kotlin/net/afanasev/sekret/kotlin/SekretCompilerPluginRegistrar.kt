@@ -5,6 +5,8 @@ import net.afanasev.sekret.kotlin.SekretOptions.KEY_ANNOTATIONS
 import net.afanasev.sekret.kotlin.SekretOptions.KEY_ENABLED
 import net.afanasev.sekret.kotlin.SekretOptions.KEY_MASK
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -23,7 +25,7 @@ class SekretCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
         val annotations = configuration.get(KEY_ANNOTATIONS, listOf("net.afanasev.sekret.Secret")).map { FqName(it) }.toSet()
         val mask = configuration.get(KEY_MASK, "■■■")
-
-        IrGenerationExtension.registerExtension(SekretGenerationExtension(annotations, mask))
+        val collector  = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
+        IrGenerationExtension.registerExtension(SekretGenerationExtension(annotations, mask,collector))
     }
 }
