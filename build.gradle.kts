@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "net.afanasev"
-version = "1.0.0"
+version = "1.0.1"
 
 tasks.wrapper {
     gradleVersion = "8.14.1"

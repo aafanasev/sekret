@@ -12,7 +12,13 @@ dependencies {
     compileOnly("com.google.auto.service:auto-service:1.0.1")
     kapt("com.google.auto.service:auto-service:1.0.1")
 }
-
+tasks {
+    jar {
+        manifest {
+            attributes("Implementation-Version" to project.version)
+        }
+    }
+}
 gradlePlugin {
     website.set("https://github.com/aafanasev/sekret/")
     vcsUrl.set("https://github.com/aafanasev/sekret/")

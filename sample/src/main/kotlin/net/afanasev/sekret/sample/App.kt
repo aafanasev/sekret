@@ -60,6 +60,10 @@ data class Phone(
 
     @AnnotationWithReplacement("\\d{3}", "three digits")
     val additional: String,
+    @AnnotationWithReplacement(".*", "$0")
+    val zeroGroupAccess: String,
+    @AnnotationWithReplacement("(\\d{3})", "$2")
+    val unknownGroupAccess: String,
 )
 
 @Suppress("ArrayInDataClass")
@@ -89,7 +93,7 @@ fun main() {
 
     println(User("John", "Snow", student))
     println(Admin("John", "Snow"))
-    println(Phone("1238767676767645", "123"))
+    println(Phone("1238767676767645", "123","121212","1212"))
     println(student)
 
     println(DifferentTypes(1, "hello", true))
@@ -109,7 +113,7 @@ fun main() {
             boolean = true,
             admin = Admin("admin", "pwd"),
             student = Student("student", "pwd"),
-            phone = Phone("123000000045", "1234"),
+            phone = Phone("123000000045", "1234","1234","12345"),
         )
     )
 
