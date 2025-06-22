@@ -19,8 +19,7 @@ dependencies {
     kapt("com.google.auto.service:auto-service:1.0.1")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.6.0")
-}
+    testImplementation("dev.zacsweers.kctfork:core:0.7.1")}
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()

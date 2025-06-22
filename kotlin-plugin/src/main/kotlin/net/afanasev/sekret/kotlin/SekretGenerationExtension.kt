@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrConst
+import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.addArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
@@ -45,9 +46,10 @@ class SekretGenerationExtension(
         val messageCollector: MessageCollector,
     ) : IrElementTransformerVoid() {
         val usedGroupRegex = "(\\$(\\d+))".toRegex()
-        val regexClassId = ClassId.fromString(Regex::class.qualifiedName!!)
+        val regexClassId = ClassId.topLevel(FqName(Regex::class.qualifiedName!!))
         val regexConstructor = pluginContext.referenceConstructors(regexClassId)
-            .firstOrNull { it.owner.valueParameters.size == 1 }
+            .firstOrNull { it.owner.valueParameters.size == 1
+                && it.owner.valueParameters.first().type.classFqName == FqName(String::class.qualifiedName!!) }
         val regexMatchesFunction = pluginContext.referenceFunctions(CallableId(regexClassId, Name.identifier("matches")))
             .firstOrNull { it.owner.valueParameters.size == 1 }
         val regexReplaceFunction = pluginContext.referenceFunctions(CallableId(regexClassId, Name.identifier("replace")))
@@ -164,8 +166,8 @@ class SekretGenerationExtension(
                 return null
             }
 
-            val searchRegex = getValueArgument(annotation, "search")?.value
-            val replacement = getValueArgument(annotation, "replacement")?.value
+            val searchRegex = getValueArgument(annotation, "search")?.value as? String
+            val replacement = getValueArgument(annotation, "replacement")?.value as? String
             if (searchRegex == null || replacement == null) {
                 messageCollector.report(
                     CompilerMessageSeverity.WARNING,
@@ -175,7 +177,7 @@ class SekretGenerationExtension(
                 )
                 return null
             }
-            val toRegex = searchRegex.toRegex()
+            val toRegex = searchRegex
             val availableRegexpGroups = (1..toRegex.toPattern().matcher("").groupCount()).toSet()
             val referencedRegexpGroups = usedGroupRegex
                 .findAll(replacement)
@@ -207,9 +209,9 @@ class SekretGenerationExtension(
             return Replacement(searchRegex, replacement)
         }
 
-        private fun getValueArgument(annotation: IrConstructorCall, name: String): IrConst<String>? {
+        private fun getValueArgument(annotation: IrConstructorCall, name: String): IrConst? {
             @Suppress("UNCHECKED_CAST")
-            return annotation.getValueArgument(Name.identifier(name)) as? IrConst<String>
+            return (annotation.getValueArgument(Name.identifier(name)) as? IrConst)?.takeIf { it.kind == IrConstKind.String }
         }
 
         private fun IrBlockBodyBuilder.replaceByRegexp(
