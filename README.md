@@ -4,6 +4,10 @@
 
 Kotlin compiler plugin that hides data class properties in generated `toString()` method
 
+## Poll
+
+Please join discussion https://github.com/aafanasev/sekret/discussions/50#discussion-8585307
+
 ## Motivation
 
 In 2019 Facebook and Google admitted a leaking of millions of user passwords. 
