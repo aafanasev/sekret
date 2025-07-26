@@ -27,11 +27,10 @@ application {
 val kotlinPlugin = ":kotlin-plugin"
 
 tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
+    compilerOptions {
         freeCompilerArgs =
             listOf(
-                "-Xplugin=${project(kotlinPlugin).buildDir}/libs/kotlin-plugin-$version.jar",
-
+                "-Xplugin=${project(kotlinPlugin).layout.buildDirectory}/libs/kotlin-plugin-$version.jar",
             )
         pluginOptions.add(CompilerPluginConfig().apply {
             addPluginArgument("sekret", SubpluginOption("annotations","net.afanasev.sekret.sample.AnnotationWithReplacement"))
