@@ -1,3 +1,5 @@
+@file:OptIn(UnsafeDuringIrConstructionAPI::class)
+
 package net.afanasev.sekret.kotlin
 
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
@@ -7,16 +9,14 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.*
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.addArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
 import org.jetbrains.kotlin.ir.interpreter.getAnnotation
+import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isArray
@@ -48,32 +48,39 @@ class SekretGenerationExtension(
         val usedGroupRegex = "(\\$(\\d+))".toRegex()
         val regexClassId = ClassId.topLevel(FqName(Regex::class.qualifiedName!!))
         val regexConstructor = pluginContext.referenceConstructors(regexClassId)
-            .firstOrNull { it.owner.valueParameters.size == 1
-                && it.owner.valueParameters.first().type.classFqName == FqName(String::class.qualifiedName!!) }
+            .firstOrNull {
+                val parameters = it.owner.parameters.filter { it.kind == IrParameterKind.Regular || it.kind == IrParameterKind.Context }
+                parameters.size == 1
+                    && parameters.first().type.classFqName == FqName(String::class.qualifiedName!!)
+            }
         val regexMatchesFunction = pluginContext.referenceFunctions(CallableId(regexClassId, Name.identifier("matches")))
-            .firstOrNull { it.owner.valueParameters.size == 1 }
+            .firstOrNull { it.owner.parameters.filter { it.kind == IrParameterKind.Regular || it.kind == IrParameterKind.Context }.size == 1 }
         val regexReplaceFunction = pluginContext.referenceFunctions(CallableId(regexClassId, Name.identifier("replace")))
             .firstOrNull {
-                it.owner.valueParameters.size == 2
-                    && it.owner.valueParameters[0].type == pluginContext.irBuiltIns.charSequenceClass.defaultType
-                    && it.owner.valueParameters[1].type == pluginContext.irBuiltIns.stringType
+                val parameters = it.owner.parameters.filter { it.kind == IrParameterKind.Regular || it.kind == IrParameterKind.Context }
+                parameters.size == 2
+                    && parameters[0].type == pluginContext.irBuiltIns.charSequenceClass.defaultType
+                    && parameters[1].type == pluginContext.irBuiltIns.stringType
             }
 
         init {
-            if(regexConstructor==null){
+            if (regexConstructor == null) {
                 messageCollector.report(
                     CompilerMessageSeverity.WARNING,
-                    "Replace functionality is DISABLED : Unable to find  constructor having exactly 1 argument ${regexClassId.asFqNameString()}")
+                    "Replace functionality is DISABLED : Unable to find  constructor having exactly 1 argument ${regexClassId.asFqNameString()}"
+                )
             }
-            if(regexMatchesFunction==null){
+            if (regexMatchesFunction == null) {
                 messageCollector.report(
                     CompilerMessageSeverity.WARNING,
-                    "Replace functionality is DISABLED : Unable to find 'Regexp.matches' ")
+                    "Replace functionality is DISABLED : Unable to find 'Regexp.matches' "
+                )
             }
-            if(regexReplaceFunction==null){
+            if (regexReplaceFunction == null) {
                 messageCollector.report(
                     CompilerMessageSeverity.WARNING,
-                    "Replace functionality is DISABLED : Unable to find 'Regexp.replace' ")
+                    "Replace functionality is DISABLED : Unable to find 'Regexp.replace' "
+                )
             }
         }
 
@@ -101,7 +108,7 @@ class SekretGenerationExtension(
             val parameters = mutableSetOf<Name>()
             val properties = mutableListOf<IrProperty>()
 
-            constructor.valueParameters.forEach { parameter ->
+            constructor.parameters.filter { it.kind == IrParameterKind.Regular || it.kind == IrParameterKind.Context }.forEach { parameter ->
                 parameters.add(parameter.name)
             }
 
@@ -132,7 +139,7 @@ class SekretGenerationExtension(
                                 }
                                 if (isArray(property)) {
                                     addArgument(builder.irCall(pluginContext.irBuiltIns.dataClassArrayMemberToStringSymbol).apply {
-                                        putValueArgument(0, propertyGetter)
+                                        arguments[0] = propertyGetter
                                     })
                                 } else {
                                     addArgument(propertyGetter)
@@ -162,7 +169,7 @@ class SekretGenerationExtension(
                 return null
             }
 
-            if (annotation.valueArgumentsCount != 2) {
+            if (annotation.arguments.size != 2) {
                 return null
             }
 
@@ -226,20 +233,20 @@ class SekretGenerationExtension(
 
             // val regexp = Regexp("myRegexp")
             val regexInstance = irCall(regexConstructor).apply {
-                putValueArgument(0, irString(replacement.searchRegexp))
+                arguments[0] = irString(replacement.searchRegexp)
             }
 
             // regexp.matches(annotatedProperty)
             val matchesCall = irCall(regexMatchesFunction).apply {
                 dispatchReceiver = regexInstance
-                putValueArgument(0, irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!))
+                arguments[1] = irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)
             }
 
             // regexp.replace(annotatedProperty, replacement)
             val replaceCall = irCall(regexReplaceFunction).apply {
                 dispatchReceiver = regexInstance
-                putValueArgument(0, irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!))
-                putValueArgument(1, irString(replacement.replacementString))
+                arguments[1] = irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)
+                arguments[2] = irString(replacement.replacementString)
             }
 
             /**
