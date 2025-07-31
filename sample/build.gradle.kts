@@ -30,11 +30,11 @@ tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
         freeCompilerArgs =
             listOf(
-                "-Xplugin=${project(kotlinPlugin).layout.buildDirectory}/libs/kotlin-plugin-$version.jar",
+                "-Xplugin=${project(kotlinPlugin).layout.buildDirectory.asFile.get().path}/libs/kotlin-plugin-$version.jar",
             )
         pluginOptions.add(CompilerPluginConfig().apply {
-            addPluginArgument("sekret", SubpluginOption("annotations","net.afanasev.sekret.sample.AnnotationWithReplacement"))
             addPluginArgument("sekret", SubpluginOption("annotations","net.afanasev.sekret.Secret"))
+            addPluginArgument("sekret", SubpluginOption("annotations","net.afanasev.sekret.sample.AnnotationWithReplacement"))
         })
     }
 }
