@@ -13,7 +13,6 @@ description = "Kotlin compiler for Sekret library"
 
 dependencies {
     compileOnly(kotlin("compiler-embeddable"))
-    implementation(projects.annotation)
 
     compileOnly("com.google.auto.service:auto-service:1.0.1")
     kapt("com.google.auto.service:auto-service:1.0.1")
@@ -21,6 +20,7 @@ dependencies {
     testImplementation(kotlin("compiler-embeddable"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testImplementation("dev.zacsweers.kctfork:core:0.7.1")
+    testImplementation(projects.annotation)
 }
 
 tasks.withType<Test>().configureEach {
