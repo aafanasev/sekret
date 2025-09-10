@@ -12,14 +12,16 @@ plugins {
 description = "Kotlin compiler for Sekret library"
 
 dependencies {
-    implementation(kotlin("compiler-embeddable"))
+    compileOnly(kotlin("compiler-embeddable"))
     implementation(projects.annotation)
 
     compileOnly("com.google.auto.service:auto-service:1.0.1")
     kapt("com.google.auto.service:auto-service:1.0.1")
 
+    testImplementation(kotlin("compiler-embeddable"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
-    testImplementation("dev.zacsweers.kctfork:core:0.7.1")}
+    testImplementation("dev.zacsweers.kctfork:core:0.7.1")
+}
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
