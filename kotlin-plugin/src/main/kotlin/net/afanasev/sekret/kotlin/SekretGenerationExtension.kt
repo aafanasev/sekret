@@ -85,17 +85,28 @@ class SekretGenerationExtension(
         }
 
         override fun visitClass(declaration: IrClass): IrStatement {
-            if (declaration.isData && hasAnySecretAnnotation(declaration)) {
-                val toStringFunction = declaration.functions.find { it.name.asString() == "toString" }
-                if (toStringFunction != null) {
-                    modifyToStringFunction(toStringFunction, declaration)
+            if (declaration.isData) {
+                if (isClassMarkedAsSecret(declaration)) {
+                    findToStringFunction(declaration)?.let {
+                        maskToStringFunction(it, declaration)
+                    }
+                } else if (isAnyPropertyMarkedAsSecret(declaration)) {
+                    findToStringFunction(declaration)?.let {
+                        maskPropertiesInToStringFunction(it, declaration)
+                    }
                 }
             }
 
             return super.visitClass(declaration)
         }
 
-        private fun hasAnySecretAnnotation(kclass: IrClass): Boolean {
+        private fun isClassMarkedAsSecret(kclass: IrClass): Boolean {
+            return annotations.any { annotation ->
+                kclass.hasAnnotation(annotation)
+            }
+        }
+
+        private fun isAnyPropertyMarkedAsSecret(kclass: IrClass): Boolean {
             return annotations.any { annotation ->
                 kclass.properties.any { property ->
                     property.hasAnnotation(annotation) || property.backingField?.hasAnnotation(annotation) ?: false
@@ -103,7 +114,18 @@ class SekretGenerationExtension(
             }
         }
 
-        private fun modifyToStringFunction(toStringFunction: IrSimpleFunction, irClass: IrClass) {
+        private fun findToStringFunction(kclass: IrClass): IrSimpleFunction? {
+            return kclass.functions.find { it.name.asString() == "toString" }
+        }
+
+        private fun maskToStringFunction(toStringFunction: IrSimpleFunction, irClass: IrClass) {
+            val builder = DeclarationIrBuilder(pluginContext, toStringFunction.symbol)
+            toStringFunction.body = builder.irBlockBody {
+                +irReturn(irString(irClass.name.toString() + "(" + mask + ")"))
+            }
+        }
+
+        private fun maskPropertiesInToStringFunction(toStringFunction: IrSimpleFunction, irClass: IrClass) {
             val constructor = irClass.constructors.first { it.isPrimary }
             val parameters = mutableSetOf<Name>()
             val properties = mutableListOf<IrProperty>()
