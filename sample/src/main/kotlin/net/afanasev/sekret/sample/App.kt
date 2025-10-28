@@ -28,11 +28,12 @@ data class DifferentTypes(
     @Secret val boolean: Boolean
 )
 
-data class NoSekret(val string: String){
+data class NoSekret(val string: String) {
     override fun toString(): String {
         return "Some overriden string: $string"
     }
 }
+
 @Suppress("ArrayInDataClass")
 data class Arrays(
     @Secret val ints: IntArray,
@@ -87,13 +88,19 @@ data class Complex(
     var field2 = false
 }
 
+@Secret
+data class SecretClass(
+    val a: String,
+    val b: Int,
+)
+
 
 fun main() {
     val student = Student("John", "Snow")
 
     println(User("John", "Snow", student))
     println(Admin("John", "Snow"))
-    println(Phone("1238767676767645", "123","121212","1212"))
+    println(Phone("1238767676767645", "123", "121212", "1212"))
     println(student)
 
     println(DifferentTypes(1, "hello", true))
@@ -113,9 +120,11 @@ fun main() {
             boolean = true,
             admin = Admin("admin", "pwd"),
             student = Student("student", "pwd"),
-            phone = Phone("123000000045", "1234","1234","12345"),
+            phone = Phone("123000000045", "1234", "1234", "12345"),
         )
     )
+
+    println(SecretClass("Secret class", 123456789))
 
     Interface.main()
     VC.main()
