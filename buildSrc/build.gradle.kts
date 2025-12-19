@@ -1,12 +1,10 @@
 plugins {
     `kotlin-dsl`
-    kotlin("jvm") version "2.2.20"
-    // Gradle uses an embedded Kotlin with version 1.4
-    // https://docs.gradle.org/current/userguide/compatibility.html#kotlin
+    kotlin("jvm") version "2.3.0"
 }
 
 // set the versions of Gradle plugins that the subprojects will use here
-val kotlinPluginVersion: String = "2.2.20"
+val kotlinPluginVersion: String = "2.3.0"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinPluginVersion"))
