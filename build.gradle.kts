@@ -3,9 +3,9 @@ plugins {
 }
 
 group = "net.afanasev"
-version = "2.2.0"
+version = "2.3.0"
 
 tasks.wrapper {
-    gradleVersion = "8.14.1"
+    gradleVersion = "9.0.0"
     distributionType = Wrapper.DistributionType.ALL
 }

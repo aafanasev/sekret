@@ -15,6 +15,8 @@ import org.jetbrains.kotlin.name.FqName
 @AutoService(CompilerPluginRegistrar::class)
 class SekretCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
+    override val pluginId: String = PLUGIN_ID
+
     override val supportsK2: Boolean = true
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
