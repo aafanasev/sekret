@@ -35,9 +35,6 @@ tasks.register("publishConfirm") {
     description = "Makes a POST request to confirm publication"
 
     doLast {
-        val ossrhUsername = project.findProperty("sonatypeUsername") as? String ?: System.getenv("SONATYPE_USERNAME")
-        val ossrhPassword = project.findProperty("sonatypePassword") as? String ?: System.getenv("SONATYPE_PASSWORD")
-
         val url = URL("https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/net.afanasev")
         val credentials = "$ossrhUsername:$ossrhPassword"
         val encodedAuth = Base64.getEncoder().encodeToString(credentials.toByteArray(Charsets.UTF_8))
