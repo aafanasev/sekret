@@ -257,16 +257,20 @@ class SekretGenerationExtension(
                 arguments[0] = irString(replacement.searchRegexp)
             })
 
+            fun propertyValue() = irCall(property.getter!!.symbol).apply {
+                dispatchReceiver = irGet(toStringFunction.dispatchReceiverParameter!!)
+            }
+
             // regexp.matches(annotatedProperty)
             val matchesCall = irCall(regexMatchesFunction).apply {
                 dispatchReceiver = irGet(regexVar)
-                arguments[1] = irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)
+                arguments[1] = propertyValue()
             }
 
             // regexp.replace(annotatedProperty, replacement)
             val replaceCall = irCall(regexReplaceFunction).apply {
                 dispatchReceiver = irGet(regexVar)
-                arguments[1] = irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)
+                arguments[1] = propertyValue()
                 arguments[2] = irString(replacement.replacementString)
             }
 
@@ -287,7 +291,7 @@ class SekretGenerationExtension(
             )
             val nonNullExpression = irIfThenElse(
                 context.irBuiltIns.stringType,
-                irEqualsNull(irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)),
+                irEqualsNull(propertyValue()),
                 irString("null"),
                 regexpExpression
             )
