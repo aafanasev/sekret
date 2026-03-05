@@ -5,6 +5,7 @@ package net.afanasev.sekret
  */
 @Target(
     AnnotationTarget.CLASS,
+    AnnotationTarget.PROPERTY,
     AnnotationTarget.FIELD,
 )
 @Retention(AnnotationRetention.SOURCE)
