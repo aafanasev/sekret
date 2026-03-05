@@ -254,19 +254,19 @@ class SekretGenerationExtension(
             checkNotNull(regexReplaceFunction)
 
             // val regexp = Regexp("myRegexp")
-            val regexInstance = irCall(regexConstructor).apply {
+            val regexVar = irTemporary(irCall(regexConstructor).apply {
                 arguments[0] = irString(replacement.searchRegexp)
-            }
+            })
 
             // regexp.matches(annotatedProperty)
             val matchesCall = irCall(regexMatchesFunction).apply {
-                dispatchReceiver = regexInstance
+                dispatchReceiver = irGet(regexVar)
                 arguments[1] = irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)
             }
 
             // regexp.replace(annotatedProperty, replacement)
             val replaceCall = irCall(regexReplaceFunction).apply {
-                dispatchReceiver = regexInstance
+                dispatchReceiver = irGet(regexVar)
                 arguments[1] = irGetField(irGet(toStringFunction.dispatchReceiverParameter!!), property.backingField!!)
                 arguments[2] = irString(replacement.replacementString)
             }
