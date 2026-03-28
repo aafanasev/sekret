@@ -1,6 +1,6 @@
 # Sekret
 
-![maven](https://maven-badges.herokuapp.com/maven-central/net.afanasev/sekret-annotation/badge.svg?style=flat)
+![maven](https://maven-badges.sml.io/maven-central/net.afanasev/sekret-annotation/badge.svg?style=flat)
 
 A Kotlin compiler plugin that prevents sensitive data class properties from appearing in generated `toString()` output — enforced at compile time, with zero runtime cost.
 
