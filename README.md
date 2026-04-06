@@ -10,6 +10,12 @@ Please join the discussion: https://github.com/aafanasev/sekret/discussions/50#d
 
 ---
 
+## Real-World Motivation
+
+For a concrete story of how this class of vulnerability emerges in production systems — a mobile app with FSM architecture where credentials, session tokens, and payment card data flowed unguarded through a logging decorator into Crashlytics, Datadog, and Splunk — read the [showcase case study](SHOWCASE.md).
+
+---
+
 ## The Problem
 
 ### Logs are an invisible attack surface
