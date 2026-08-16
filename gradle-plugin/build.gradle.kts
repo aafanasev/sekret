@@ -7,7 +7,12 @@ plugins {
 }
 
 dependencies {
-    implementation(kotlin("gradle-plugin-api"))
+    // Both are always already on the consumer's buildscript classpath — KGP-api is provided by the
+    // Kotlin Gradle plugin (or by AGP 9's built-in Kotlin), the stdlib by Gradle's embedded Kotlin.
+    // Exposing them at runtime puts a second Kotlin toolchain on that classpath and breaks
+    // resolution of the `org.jetbrains:annotations:{strictly 13.0}` pin. See issue #90.
+    compileOnly(kotlin("gradle-plugin-api"))
+    compileOnly(kotlin("stdlib"))
 
     compileOnly("com.google.auto.service:auto-service:1.0.1")
     kapt("com.google.auto.service:auto-service:1.0.1")

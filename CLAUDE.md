@@ -47,6 +47,6 @@ Four Gradle submodules:
 
 ## Version & Publishing
 
-- Version is set in root `build.gradle.kts` (`group = "net.afanasev"`, `version = "2.3.0"`).
+- `group` and `version` are set in root `build.gradle.kts` and inherited by every subproject via the `subproject` convention plugin.
 - Artifacts are published to Maven Central. Signing is required for `:annotation` and `:kotlin-plugin`.
 - The Gradle plugin is published via the `com.gradle.plugin-publish` plugin with id `net.afanasev.sekret`.
