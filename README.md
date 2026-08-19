@@ -183,6 +183,12 @@ This is the same principle behind other compile-time safety mechanisms: null saf
 
 ---
 
+## Other languages
+
+- **Rust** — [kistelen](https://github.com/aafanasev/kistelen) applies the same idea to Rust's `Debug` output: derive `Secret` on a struct and mark fields with `#[secret]` to have their values replaced by `■■■`.
+
+---
+
 ## Mentions
 
 - [Medium](https://medium.com/@jokuskay/how-to-exclude-properties-from-tostring-of-kotlin-data-classes-f8dc04b8c45e)
