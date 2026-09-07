@@ -18,3 +18,14 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run tests
         run: ./gradlew test --info
+
+  # Apple targets only build on a macOS host, so the Kotlin/Native coverage in :sample-kmp
+  # runs here. Device targets are compile-only; the simulator targets run the tests.
+  test-apple:
+
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run tests
+        run: ./gradlew check

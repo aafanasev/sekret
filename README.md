@@ -162,6 +162,52 @@ If you define your own secret annotation, it must use `SOURCE` retention so it d
 annotation class Confidential
 ```
 
+### Kotlin Multiplatform
+
+Supported targets: **JVM**, **Android**, and **Kotlin/Native**. All Kotlin/Native targets share
+the same IR backend and are enabled; iOS is the one covered by the test suite.
+
+Apply the plugin once at the project level — it attaches to every supported compilation:
+
+```kotlin
+plugins {
+    kotlin("multiplatform")
+    id("net.afanasev.sekret") version "<version>"
+}
+
+kotlin {
+    androidTarget()
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+}
+```
+
+The `sekret-annotation` artifact is JVM-only, so it cannot go on the compile classpath of a
+native target. Declare your own marker in `commonMain` instead and register it:
+
+```kotlin
+// commonMain
+@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.SOURCE)
+annotation class Secret
+```
+
+```kotlin
+// build.gradle.kts
+sekret {
+    annotations = listOf("com.example.Secret")
+}
+```
+
+Data classes in `commonMain` are masked on every platform, because each platform compilation
+compiles those sources. See [`sample-kmp`](sample-kmp) for a working setup.
+
+> **Upgrading from 2.4.x or earlier:** the plugin was previously applied only to JVM and Android
+> compilations. Native targets compiled with an unmodified `toString()` and no warning, so if you
+> were already using a custom annotation in shared code, secrets were printing in plaintext on
+> iOS. Verify with a test that asserts on `toString()` from an `iosTest` source set.
+
 ### Kotlin CLI
 
 ```bash

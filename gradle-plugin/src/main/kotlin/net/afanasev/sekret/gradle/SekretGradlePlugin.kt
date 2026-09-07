@@ -17,8 +17,13 @@ class SekretGradlePlugin @Inject internal constructor(
     private val registry: ToolingModelBuilderRegistry,
 ) : KotlinCompilerPluginSupportPlugin {
 
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean =
-        (kotlinCompilation.platformType == KotlinPlatformType.jvm || kotlinCompilation.platformType == KotlinPlatformType.androidJvm)
+    /**
+     * Metadata (`common`) compilations are intentionally excluded: they produce no `toString()`
+     * bodies to rewrite. Sources in `commonMain` are still masked, because every platform
+     * compilation compiles them.
+     */
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>) =
+        kotlinCompilation.platformType in supportedPlatformTypes
 
     override fun apply(target: Project) {
         target.extensions.create("sekret", SekretGradlePluginExtension::class.java)
@@ -45,4 +50,12 @@ class SekretGradlePlugin @Inject internal constructor(
         "sekret-kotlin-plugin",
         SekretGradlePlugin::class.java.`package`.implementationVersion
     )
+
+    private companion object {
+        val supportedPlatformTypes = setOf(
+            KotlinPlatformType.jvm,
+            KotlinPlatformType.androidJvm,
+            KotlinPlatformType.native,
+        )
+    }
 }
