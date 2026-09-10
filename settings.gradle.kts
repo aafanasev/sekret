@@ -5,6 +5,7 @@ include(
     ":gradle-plugin",
     ":kotlin-plugin",
     ":sample",
+    ":sample-kmp",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
