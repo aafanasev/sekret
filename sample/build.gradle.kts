@@ -12,7 +12,7 @@ dependencies {
     implementation(projects.annotation)
     implementation(projects.kotlinPlugin)
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
