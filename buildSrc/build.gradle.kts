@@ -1,10 +1,10 @@
 plugins {
     `kotlin-dsl`
-    kotlin("jvm") version "2.4.0"
+    kotlin("jvm") version "2.4.20"
 }
 
 // set the versions of Gradle plugins that the subprojects will use here
-val kotlinPluginVersion: String = "2.4.0"
+val kotlinPluginVersion: String = "2.4.20"
 
 dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom:$kotlinPluginVersion"))
