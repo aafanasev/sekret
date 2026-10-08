@@ -239,7 +239,8 @@ class SekretGenerationExtension(
 
         private fun getValueArgument(annotation: IrConstructorCall, name: String): IrConst? {
             @Suppress("UNCHECKED_CAST")
-            return (annotation.getValueArgument(Name.identifier(name)) as? IrConst)?.takeIf { it.kind == IrConstKind.String }
+            val argument = annotation.getArgumentsWithIr().firstOrNull { (parameter, _) -> parameter.name.asString() == name }?.second
+            return (argument as? IrConst)?.takeIf { it.kind == IrConstKind.String }
         }
 
         private fun IrBlockBodyBuilder.replaceByRegexp(

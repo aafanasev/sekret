@@ -19,7 +19,7 @@ dependencies {
 
     testImplementation(kotlin("compiler-embeddable"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.14.4")
-    testImplementation("dev.zacsweers.kctfork:core:0.13.0")
+    testImplementation("dev.zacsweers.kctfork:core:0.14.0")
     testImplementation(projects.annotation)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
