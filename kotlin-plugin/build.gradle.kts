@@ -14,11 +14,11 @@ description = "Kotlin compiler for Sekret library"
 dependencies {
     compileOnly(kotlin("compiler-embeddable"))
 
-    compileOnly("com.google.auto.service:auto-service:1.0.1")
-    kapt("com.google.auto.service:auto-service:1.0.1")
+    compileOnly("com.google.auto.service:auto-service:1.1.1")
+    kapt("com.google.auto.service:auto-service:1.1.1")
 
     testImplementation(kotlin("compiler-embeddable"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.4")
     testImplementation("dev.zacsweers.kctfork:core:0.13.0")
     testImplementation(projects.annotation)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

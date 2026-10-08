@@ -6,6 +6,6 @@ group = "net.afanasev"
 version = "2.5.0"
 
 tasks.wrapper {
-    gradleVersion = "9.0.0"
+    gradleVersion = "9.8.1"
     distributionType = Wrapper.DistributionType.ALL
 }
