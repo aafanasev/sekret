@@ -1,15 +1,29 @@
 package buildsrc.convention
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("buildsrc.convention.subproject")
     kotlin("jvm")
 }
 
+// Target Java 17 bytecode and API without requiring a local JDK 17: any JDK that can run
+// Gradle builds the project. Java and Kotlin targets must match (KGP checks this), and
+// targetCompatibility also sets `org.gradle.jvm.version` in the published module metadata.
 kotlin {
-    jvmToolchain(17)
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs.add("-Xjdk-release=17")
+    }
 }
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     withSourcesJar()
     withJavadocJar()
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release = 17
 }
