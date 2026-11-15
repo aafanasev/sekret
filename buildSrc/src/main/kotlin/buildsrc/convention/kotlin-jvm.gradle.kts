@@ -7,8 +7,7 @@ plugins {
     kotlin("jvm")
 }
 
-// Target Java 17 bytecode and API without requiring a local JDK 17: any JDK that can run
-// Gradle builds the project. Java and Kotlin targets must match (KGP checks this), and
+// Target Java 17 bytecode and API. Java and Kotlin targets must match (KGP checks this), and
 // targetCompatibility also sets `org.gradle.jvm.version` in the published module metadata.
 kotlin {
     compilerOptions {
