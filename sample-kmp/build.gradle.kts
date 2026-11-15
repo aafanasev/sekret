@@ -8,8 +8,6 @@ plugins {
 description = "Multiplatform usage example, covering the Kotlin/Native (iOS) backend"
 
 kotlin {
-    jvmToolchain(17)
-
     jvm()
     iosX64()
     iosArm64()
