@@ -33,7 +33,7 @@ Four Gradle submodules:
 - **`:kotlin-plugin`** — The Kotlin compiler plugin. Implements `IrGenerationExtension` to transform IR for data class `toString()`. Published as `sekret-kotlin-plugin`.
 - **`:gradle-plugin`** — The Gradle plugin (`net.afanasev.sekret`). Implements `KotlinCompilerPluginSupportPlugin` to wire the kotlin-plugin into the Kotlin compilation. Only applies to JVM and Android JVM targets.
 - **`:sample`** — Usage example.
-- **`buildSrc/`** — Convention plugins for shared build config (`subproject`, `kotlin-jvm`, `maven-publish`). No JVM toolchain: artifacts target Java 17 bytecode and API via `jvmTarget` + `-Xjdk-release`, so any JDK that can run Gradle builds the project.
+- **`buildSrc/`** — Convention plugins for shared build config (`subproject`, `kotlin-jvm`, `maven-publish`).
 
 ## Architecture: How the Plugin Works
 
