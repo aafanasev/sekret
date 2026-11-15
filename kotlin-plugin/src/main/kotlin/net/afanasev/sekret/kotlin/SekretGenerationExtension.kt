@@ -13,12 +13,14 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.addArgument
 import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isArray
+import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
@@ -265,41 +267,61 @@ class SekretGenerationExtension(
                 arguments[0] = irString(replacement.searchRegexp)
             })
 
-            fun propertyValue() = irCall(property.getter!!.symbol).apply {
+            // val value = annotatedProperty (read once)
+            val valueVar = irTemporary(irCall(property.getter!!.symbol).apply {
                 dispatchReceiver = irGet(toStringFunction.dispatchReceiverParameter!!)
+            })
+
+            // Regex functions accept CharSequence. Any other type (Int, value classes, data classes, ...)
+            // is converted to its String representation first, otherwise it fails at runtime with
+            // ClassCastException (issue #97).
+            fun stringValue(): IrExpression = when {
+                valueVar.type.isSubtypeOfClass(context.irBuiltIns.charSequenceClass) -> irGet(valueVar)
+                isArray(property) -> irCall(context.irBuiltIns.dataClassArrayMemberToStringSymbol).apply {
+                    arguments[0] = irGet(valueVar)
+                }
+                // String concatenation lowering takes care of primitives, boxing and value classes
+                else -> irConcat().apply { addArgument(irGet(valueVar)) }
             }
 
-            // regexp.matches(annotatedProperty)
-            val matchesCall = irCall(regexMatchesFunction).apply {
-                dispatchReceiver = irGet(regexVar)
-                arguments[1] = propertyValue()
-            }
+            // { val str = annotatedProperty /* or "$annotatedProperty" */; if (regexp.matches(str)) ... }
+            val regexpExpression = irBlock(resultType = context.irBuiltIns.stringType) {
+                val strVar = irTemporary(stringValue())
 
-            // regexp.replace(annotatedProperty, replacement)
-            val replaceCall = irCall(regexReplaceFunction).apply {
-                dispatchReceiver = irGet(regexVar)
-                arguments[1] = propertyValue()
-                arguments[2] = irString(replacement.replacementString)
+                // regexp.matches(str)
+                val matchesCall = irCall(regexMatchesFunction).apply {
+                    dispatchReceiver = irGet(regexVar)
+                    arguments[1] = irGet(strVar)
+                }
+
+                // regexp.replace(str, replacement)
+                val replaceCall = irCall(regexReplaceFunction).apply {
+                    dispatchReceiver = irGet(regexVar)
+                    arguments[1] = irGet(strVar)
+                    arguments[2] = irString(replacement.replacementString)
+                }
+
+                +irIfThenElse(
+                    context.irBuiltIns.stringType,
+                    matchesCall,
+                    replaceCall,
+                    irString(mask)
+                )
             }
 
             /**
-             * val masked =  if (regexp.matches(annotatedProperty)){
-             *     regexp.replace(annotatedProperty,replacement)
+             * val masked = if (value == null) "null"
+             * else if (regexp.matches(str)) {
+             *     regexp.replace(str, replacement)
              * }
              * else {
              *   ***
              * }
              */
 
-            val regexpExpression = irIfThenElse(
-                context.irBuiltIns.stringType,
-                matchesCall,
-                replaceCall,
-                irString(mask)
-            )
             val nonNullExpression = irIfThenElse(
                 context.irBuiltIns.stringType,
-                irEqualsNull(propertyValue()),
+                irEqualsNull(irGet(valueVar)),
                 irString("null"),
                 regexpExpression
             )
