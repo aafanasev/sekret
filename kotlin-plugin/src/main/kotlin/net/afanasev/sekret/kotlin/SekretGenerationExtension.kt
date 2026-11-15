@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.util.OperatorNameConventions
 
 
 class SekretGenerationExtension(
@@ -114,7 +115,13 @@ class SekretGenerationExtension(
         }
 
         private fun findToStringFunction(kclass: IrClass): IrSimpleFunction? {
-            return kclass.functions.find { it.name.asString() == "toString" }
+            // Only rewrite the compiler-generated `toString()`. A user-defined override (#64) or an
+            // overload such as `toString(x: Int)` (#96) must not be picked up.
+            return kclass.functions.find {
+                it.name == OperatorNameConventions.TO_STRING
+                    && it.origin == IrDeclarationOrigin.GENERATED_DATA_CLASS_MEMBER
+                    && it.nonDispatchParameters.isEmpty()
+            }
         }
 
         private fun maskToStringFunction(toStringFunction: IrSimpleFunction, irClass: IrClass) {

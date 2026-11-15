@@ -140,4 +140,52 @@ class SekretPluginTest {
             result.invokeToString("Credentials", "admin", "secret123")
         )
     }
+
+    @Test
+    fun `toString overload does not prevent masking of generated toString`() {
+        val result = compile("""
+            import net.afanasev.sekret.Secret
+            data class A(val u: String, @Secret val p: String) {
+                fun toString(x: Int) = "x"
+            }
+        """)
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertEquals("A(u=u, p=■■■)", result.invokeToString("A", "u", "pw"))
+    }
+
+    @Test
+    fun `user-defined toString override is preserved`() {
+        val result = compile("""
+            import net.afanasev.sekret.Secret
+            data class B(val u: String, @Secret val p: String) {
+                override fun toString() = "custom"
+            }
+        """)
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertEquals("custom", result.invokeToString("B", "u", "pw"))
+    }
+
+    @Test
+    fun `class-level annotation with toString overload masks generated toString`() {
+        val result = compile("""
+            import net.afanasev.sekret.Secret
+            @Secret data class C(val u: String, val p: String) {
+                fun toString(x: Int) = "x"
+            }
+        """)
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertEquals("C(■■■)", result.invokeToString("C", "u", "pw"))
+    }
+
+    @Test
+    fun `class-level annotation does not replace user-defined toString override`() {
+        val result = compile("""
+            import net.afanasev.sekret.Secret
+            @Secret data class D(val u: String, val p: String) {
+                override fun toString() = "custom"
+            }
+        """)
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
+        assertEquals("custom", result.invokeToString("D", "u", "pw"))
+    }
 }
