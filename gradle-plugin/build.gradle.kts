@@ -46,7 +46,7 @@ gradlePlugin {
             displayName = "Sekret Gradle plugin"
             description = "Hide sensitive information in toString() of Kotlin Data classes"
             implementationClass = "net.afanasev.sekret.gradle.SekretGradlePlugin"
-            tags.set(listOf("kotlin", "data class", "toString", "secret"))
+            tags.set(listOf("kotlin", "data-class", "toString", "secret"))
         }
     }
 }
